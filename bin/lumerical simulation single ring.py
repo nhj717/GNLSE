@@ -1,6 +1,7 @@
-import sys
-sys.path.append('C:\\Program Files\\Lumerical\\v212\\api\\python')
-sys.path.append("/opt/lumerical/v221/api/python/")
+import sys,os
+sys.path.append('C:\\Program Files\\Lumerical\\v252\\api\\python')
+# os.environ["PATH"] += os.pathsep + r"C:\Program Files\Lumerical\v252\bin"
+# sys.path.append("/opt/lumerical/v221/api/python/")
 import lumapi
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,7 +44,8 @@ if __name__=='__main__':
     file = 'srf_thesis_data_488'
 
     if not Path(file+'.npz').exists():
-        with lumapi.MODE(filename='main.lms', hide=True) as mode:
+        with lumapi.MODE(hide=True) as mode:
+            mode.save('main.lms')
             capillary_inner_diameter = capillary_outer_diameter - 2*capillary_wall_thickness
             jacket_inner_diameter = core_diameter + 2*capillary_outer_diameter
             jacket_outer_diameter = jacket_inner_diameter + 2*jacket_thickness
@@ -137,11 +139,11 @@ if __name__=='__main__':
     # plt.ylabel('MFD [µm]')
     # sns.despine(offset=10, trim=True)
     # plt.savefig(file+'.png', dpi=300)
-
+    #
     # plt.figure(tight_layout=True)
     # plt.plot(taper_diameters * 1e6, neff, c='k')
     # plt.xlabel('Taper diameter [µm]')
     # plt.ylabel('n_eff')
     # plt.savefig(file+'_neff.png', dpi=300)
-
-    # plt.show()
+    #
+    # plt.show(blocked=True)
