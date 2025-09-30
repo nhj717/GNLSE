@@ -1,4 +1,4 @@
-# Template for projects with pytest
+# Project to calculate for the dispersion and nonlinear effects insde a fiber
 
 After cloning the repository, install the project in "editable" mode for development:
 
