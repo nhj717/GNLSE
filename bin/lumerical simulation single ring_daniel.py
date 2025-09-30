@@ -1,7 +1,5 @@
-import sys,os
+import sys
 sys.path.append('C:\\Program Files\\Lumerical\\v252\\api\\python')
-# os.environ["PATH"] += os.pathsep + r"C:\Program Files\Lumerical\v252\bin"
-# sys.path.append("/opt/lumerical/v221/api/python/")
 import lumapi
 import matplotlib.pyplot as plt
 import numpy as np
