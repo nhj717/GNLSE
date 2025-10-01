@@ -1,19 +1,11 @@
 import h5py
 from numpy import array
 
-def save_dict_to_hdf5(output_filename,dic):
+def save_dict_to_hdf5(output_filename,group_name,dic):
     with h5py.File(output_filename, "a") as f:
+        group = f.create_group(group_name)
         for key, item in dic.items():
-            if isinstance(item, dict):
-                try:
-                    subgroup = f.create_group(key)
-                    save_dict_to_hdf5(item, subgroup)
-                except:
-                    del f[key]
-                    subgroup = f.create_group(key)
-                    save_dict_to_hdf5(item, subgroup)
-            else:
-                 f.create_dataset(key, data=item)
+            group.create_dataset(key, data=item)
         f.close()
 
 

@@ -86,7 +86,7 @@ def define_mesh_structure(fde_region_size_um, fde_mesh_cell_size_um):
     mode.set('define y mesh by', 'maximum mesh step')
     mode.set('dx', fde_mesh_cell_size_um * 1e-6)
     mode.set('dy', fde_mesh_cell_size_um * 1e-6)
-    mode.set('x min bc', 'PML')
+    mode.set('x min bc', 'Symmetric')
     mode.set('x max bc', 'PML')
     mode.set('y min bc', 'PML')
     mode.set('y max bc', 'PML')
@@ -98,17 +98,18 @@ def set_initial_analysis_props(initial_frq_thz, num_trial_modes):
     mode.setanalysis('use max index',1)
 
 def calc_and_save_initial_mode_profiles(output_dir):
-    output_filename = os.path.join(output_dir, 'initial_mode_profile_data.h5')
+    output_filename = os.path.join(output_dir, 'data.h5')
     mode.findmodes()
     mode_selection = [1,2,3,4,5]
 
     var_names = ['surface_normal', 'dimension', 'f', 'neff', 'ng', 'loss', 'TE polarization fraction', 'waveguide TE/TM fraction', 'mode effective area', 'x', 'y', 'z', 'Ex', 'Ey', 'Ez', 'Hx', 'Hy', 'Hz', 'Z0']
     mode_names = ['mode{:d}'.format(i) for i in mode_selection]
+    group_name = 'initial_mode_profiles'
     arg_dict = {}
     for mode_name in mode_names:
         for var_name in var_names:
             arg_dict['{}_{}'.format(mode_name, var_name)] = mode.getdata(mode_name, var_name)
-    save_dict_to_hdf5(output_filename,arg_dict)
+    save_dict_to_hdf5(output_filename,group_name,arg_dict)
     print('initially selected mode data saved at {}'.format(output_filename))
     return mode_selection, mode_names, var_names, output_filename
 
@@ -129,8 +130,9 @@ def perform_frequency_sweep(mode_selection):
         var_names = ['neff', 'loss', 'vg', 'D', 'beta', 'f', 'f_vg', 'f_D', 'mode_number', 'overlap', 'x', 'y', 'z', 'Ex', 'Ey', 'Ez', 'Hx', 'Hy', 'Hz']
         for var_name in var_names:
             arg_dict['{}_{}'.format(mode_name, var_name)] = mode.getdata('FDE::data::frequencysweep', var_name)
-    output_filename = os.path.join(output_dir, 'frequency_sweep_data.h5')
-    save_dict_to_hdf5(output_filename,arg_dict)
+    group_name = 'frequency_sweep'
+    output_filename = os.path.join(output_dir,'data.h5')
+    save_dict_to_hdf5(output_filename,group_name,arg_dict)
     print('frequency data saved at {}'.format(output_filename))
     return output_filename
 

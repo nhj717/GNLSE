@@ -9,23 +9,23 @@ mode = 1
 
 data_label, data = functions.read_hdf5(output_dir,group_name)
 print(data_label)
-freq = data[data_label.index(f'mode{mode}_f_D')]
-D = data[data_label.index(f'mode{mode}_D')]
+freq = data[data_label.index(f'mode{mode}_f')]
+loss = data[data_label.index(f'mode{mode}_loss')]
 
 wl = flip(c/freq*1E6)
-D = flip(D)
+loss = flip(loss)
 
 
 # plot
 mm = 1 / 25.4
 size_parameter = (150, 100, 12)  # width, height, font
 layout = (0.1, 0.05, 1.0, 1.0)  # left,bottom,right,top
-label_list = ['wavelength [um]', 'D [ps/(nm km)]']  # xlabel and ylabel
+label_list = ['wavelength [um]', 'Loss [dB/km]']  # xlabel and ylabel
 (width,height,fsize) = size_parameter
 
 fig, ax = plt.subplots(figsize=(width * mm, height * mm))
 fig.tight_layout(rect = layout)
-pcm = ax.plot(wl,D)
+pcm = ax.plot(wl,loss)
 ax.set_xlabel(label_list[0], fontsize=fsize)
 ax.set_ylabel(label_list[1], fontsize=fsize)
 ax.tick_params(axis='both', which='major', size=4, width=2, labelsize=10)
