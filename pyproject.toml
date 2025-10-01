@@ -3,7 +3,7 @@ name = "pytest_template"
 version = "0.1.0"
 description = "Template of a project with pytest"
 authors = [{ name = "Hyunjun Nam", email = "nhj717@hotmail.com" }]
-dependencies = ["numpy","scipy","matplotlib"]
+dependencies = ["numpy","scipy","matplotlib","h5py"]
 
 [build-system]
 requires = ["setuptools>=61.0"]

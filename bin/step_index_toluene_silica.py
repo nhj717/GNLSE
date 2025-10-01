@@ -2,6 +2,7 @@ import sys,os
 sys.path.append('C:\\Program Files\\Lumerical\\v252\\api\\python')
 import lumapi
 import numpy as np
+from functions import save_dict_to_hdf5
 from datetime import datetime
 from scipy.constants import c
 
@@ -32,7 +33,7 @@ num_trial_modes=5
 
 stop_wavelength_um=0.5
 final_frq_thz=c/(stop_wavelength_um*1e-6)*1e-12
-num_frequency_points=10
+num_frequency_points=5
 num_sample_modes=num_trial_modes
 
 
@@ -115,17 +116,17 @@ def set_initial_analysis_props(initial_frq_thz, num_trial_modes):
     mode.setanalysis('use max index',1)
 
 def calc_and_save_initial_mode_profiles(output_dir):
-    output_filename = os.path.join(output_dir, 'initial_mode_profile_data.npz')
+    output_filename = os.path.join(output_dir, 'initial_mode_profile_data.h5')
     mode.findmodes()
     mode_selection = [1,2,3,4,5]
 
     var_names = ['surface_normal', 'dimension', 'f', 'neff', 'ng', 'loss', 'TE polarization fraction', 'waveguide TE/TM fraction', 'mode effective area', 'x', 'y', 'z', 'Ex', 'Ey', 'Ez', 'Hx', 'Hy', 'Hz', 'Z0']
     mode_names = ['mode{:d}'.format(i) for i in mode_selection]
-    savez_arg_dict = {}
+    arg_dict = {}
     for mode_name in mode_names:
         for var_name in var_names:
-            savez_arg_dict['{}_{}'.format(mode_name, var_name)] = mode.getdata(mode_name, var_name)
-    np.savez(output_filename, **savez_arg_dict)
+            arg_dict['{}_{}'.format(mode_name, var_name)] = mode.getdata(mode_name, var_name)
+    save_dict_to_hdf5(output_filename,arg_dict)
     print('initially selected mode data saved at {}'.format(output_filename))
     return mode_selection, mode_names, var_names, output_filename
 
@@ -137,7 +138,7 @@ def set_frequency_sweep_props(stop_wavelength_um, num_frequency_points, num_samp
     mode.setanalysis('track selected mode', 1)
 
 def perform_frequency_sweep(mode_selection):
-    savez_arg_dict = {}
+    arg_dict = {}
     for mode_index in mode_selection:
         mode_name = 'mode{:d}'.format(mode_index)
         mode.selectmode(mode_index)
@@ -145,9 +146,9 @@ def perform_frequency_sweep(mode_selection):
         mode.frequencysweep()
         var_names = ['neff', 'loss', 'vg', 'D', 'beta', 'f', 'f_vg', 'f_D', 'mode_number', 'overlap', 'x', 'y', 'z', 'Ex', 'Ey', 'Ez', 'Hx', 'Hy', 'Hz']
         for var_name in var_names:
-            savez_arg_dict['{}_{}'.format(mode_name, var_name)] = mode.getdata('FDE::data::frequencysweep', var_name)
-    output_filename = os.path.join(output_dir, 'frequency_sweep_data.npz')
-    np.savez(output_filename, **savez_arg_dict)
+            arg_dict['{}_{}'.format(mode_name, var_name)] = mode.getdata('FDE::data::frequencysweep', var_name)
+    output_filename = os.path.join(output_dir, 'frequency_sweep_data.h5')
+    save_dict_to_hdf5(output_filename,arg_dict)
     print('frequency data saved at {}'.format(output_filename))
     return output_filename
 
