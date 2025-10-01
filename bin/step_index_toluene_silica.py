@@ -6,7 +6,7 @@ from functions import save_dict_to_hdf5
 from datetime import datetime
 from scipy.constants import c
 
-description = 'test_sweep'
+description = 'freq_sweep'
 
 output_basedir = os.path.dirname(os.path.abspath(__file__))
 now = datetime.now()
@@ -21,11 +21,7 @@ core_radius_um = 5
 cladding_radius_um = 62.5
 
 fde_region_size_um = 4*core_radius_um
-fde_mesh_cell_size_um = 5.0
-refinement_region_sizes_um, refinement_region_cell_sizes_um, refinement_region_names = [], [], []
-refinement_region_names.append('core_mesh_refinement')
-refinement_region_sizes_um.append(2*core_radius_um)
-refinement_region_cell_sizes_um.append(.1)
+fde_mesh_cell_size_um = 0.1
 
 lambda_um = 2
 initial_frq_thz=c/(lambda_um*1e-6)*1e-12
@@ -33,7 +29,7 @@ num_trial_modes=5
 
 stop_wavelength_um=0.5
 final_frq_thz=c/(stop_wavelength_um*1e-6)*1e-12
-num_frequency_points=5
+num_frequency_points=10
 num_sample_modes=num_trial_modes
 
 
@@ -79,21 +75,7 @@ def define_material_geometry(core_radius_um, cladding_radius_um):
 
 
 
-def define_mesh_structure(fde_region_size_um, fde_mesh_cell_size_um,
-                          refinement_region_sizes_um=[], refinement_region_cell_sizes_um=[],
-                          refinement_region_names=[]):
-    for i in range(len(refinement_region_sizes_um)):
-        mode.addmesh()
-        mode.set('name', refinement_region_names[i])
-        mode.set('x', 0)
-        mode.set('y', 0)
-        mode.set('x span', refinement_region_sizes_um[i] * 1e-6)
-        mode.set('y span', refinement_region_sizes_um[i] * 1e-6)
-        mode.set('override x mesh', 1)
-        mode.set('override y mesh', 1)
-        mode.set('set maximum mesh step', 1)
-        mode.set('dx', refinement_region_cell_sizes_um[i] * 1e-6)
-        mode.set('dy', refinement_region_cell_sizes_um[i] * 1e-6)
+def define_mesh_structure(fde_region_size_um, fde_mesh_cell_size_um):
 
     mode.addfde()
     mode.set('x', 0)
@@ -154,8 +136,7 @@ def perform_frequency_sweep(mode_selection):
 
 reset()
 define_material_geometry(core_radius_um=core_radius_um, cladding_radius_um=cladding_radius_um)
-define_mesh_structure(fde_region_size_um=fde_region_size_um, fde_mesh_cell_size_um=fde_mesh_cell_size_um,
-                      refinement_region_sizes_um=refinement_region_sizes_um, refinement_region_cell_sizes_um=refinement_region_cell_sizes_um, refinement_region_names=refinement_region_names)
+define_mesh_structure(fde_region_size_um=fde_region_size_um, fde_mesh_cell_size_um=fde_mesh_cell_size_um)
 mode.save('test.lms')
 set_initial_analysis_props(initial_frq_thz=initial_frq_thz, num_trial_modes=num_trial_modes)
 mode_selection, mode_names, var_names, output_filename = calc_and_save_initial_mode_profiles(output_dir=output_dir)

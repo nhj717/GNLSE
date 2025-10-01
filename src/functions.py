@@ -14,10 +14,12 @@ def save_dict_to_hdf5(output_filename,dic):
                     save_dict_to_hdf5(item, subgroup)
             else:
                  f.create_dataset(key, data=item)
+        f.close()
 
 
-def read_hdf5(location,file_name,group_name):
-    df = h5py.File('{}/{}.h5'.format(location, file_name), 'r')
+def read_hdf5(filename,group_name):
+    df = h5py.File(filename, 'r')
+    print(df.keys())
     try:
         data_label = list(df[group_name].keys())
         data = []
