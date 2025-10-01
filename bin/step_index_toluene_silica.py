@@ -139,7 +139,7 @@ def perform_frequency_sweep(mode_selection):
 reset()
 define_material_geometry(core_radius_um=core_radius_um, cladding_radius_um=cladding_radius_um)
 define_mesh_structure(fde_region_size_um=fde_region_size_um, fde_mesh_cell_size_um=fde_mesh_cell_size_um)
-mode.save('test.lms')
+mode.save('step_index.lms')
 set_initial_analysis_props(initial_frq_thz=initial_frq_thz, num_trial_modes=num_trial_modes)
 mode_selection, mode_names, var_names, output_filename = calc_and_save_initial_mode_profiles(output_dir=output_dir)
 set_frequency_sweep_props(stop_wavelength_um=stop_wavelength_um, num_frequency_points=num_frequency_points, num_sample_modes=num_sample_modes)
