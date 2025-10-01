@@ -21,7 +21,7 @@ core_radius_um = 5
 cladding_radius_um = 62.5
 
 fde_region_size_um = 4*core_radius_um
-fde_mesh_cell_size_um = 0.1
+fde_mesh_cell_size_um = 0.2
 
 lambda_um = 2
 initial_frq_thz=c/(lambda_um*1e-6)*1e-12
@@ -29,7 +29,7 @@ num_trial_modes=5
 
 stop_wavelength_um=0.5
 final_frq_thz=c/(stop_wavelength_um*1e-6)*1e-12
-num_frequency_points=10
+num_frequency_points=200
 num_sample_modes=num_trial_modes
 
 
