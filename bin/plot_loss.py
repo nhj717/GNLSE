@@ -3,7 +3,7 @@ from scipy.constants import c
 from numpy import flip
 import matplotlib.pyplot as plt
 
-output_dir = r'C:\Users\hnam\PycharmProjects\GNLSE\bin\2025-Oct-01\freq_sweep_2025-Oct-01_18-26-08\data.h5'
+output_dir = r'/bin/2025-Oct-01/freq_sweep_step_index\data.h5'
 group_name = 'frequency_sweep'
 mode = 1
 
