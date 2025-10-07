@@ -20,7 +20,7 @@ if not os.path.exists(output_dir):
 d_um = 0.44
 pitch_um = 1.15
 
-lambda_um = 1.064
+lambda_um = 2
 initial_frq_thz=c/(lambda_um*1e-6)*1e-12
 num_trial_modes=10
 

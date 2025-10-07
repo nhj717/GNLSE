@@ -5,7 +5,7 @@ def test_add():
     assert add(1, 2) == 3
 
 def test_Saitoh():
-    wl = 1.064
+    wl = 0.5
     d = 0.44
     pitch = 1.14
     test = Saitoh(wl,d,pitch)

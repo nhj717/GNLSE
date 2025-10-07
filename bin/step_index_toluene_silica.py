@@ -17,7 +17,7 @@ if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
 # settings
-core_radius_um = 5
+core_radius_um = 4
 cladding_radius_um = 62.5
 
 fde_region_size_um = 4*core_radius_um
