@@ -7,8 +7,8 @@ def test_add():
 
 
 def test_Saitoh():
-    wl = 1.0
-    d = 0.4
+    wl = 0.5
+    d = 0.39
     pitch = 1.56
     test = Saitoh(wl, d, pitch)
     x = test.neff()
