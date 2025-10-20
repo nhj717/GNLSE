@@ -3,7 +3,9 @@ from scipy.constants import c
 import numpy as np
 import matplotlib.pyplot as plt
 
-output_dir = r"C:\Users\labadmin\PycharmProjects\GNLSE\bin\2025-Oct-06\freq_sweep_2025-Oct-06_10-41-14\data.h5"
+output_dir = (
+    r"/lumerical_dispersion\2025-Oct-06\freq_sweep_2025-Oct-06_10-41-14\data.h5"
+)
 group_name = "initial_mode_profiles"
 mode = 1
 
