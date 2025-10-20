@@ -6,9 +6,10 @@ from functions import save_dict_to_hdf5 as svhd
 import os
 
 # Path to your COMSOL text file
-comsol_folder = r"C:\Users\labadmin\PycharmProjects\GNLSE\comsol_dispersion"
+project_path= os.getcwd()
+comsol_folder = "comsol_dispersion"
 waveguidename = "pcf"
-filename = os.path.join(comsol_folder, waveguidename) + ".txt"
+filename = os.path.join(project_path,comsol_folder, waveguidename) + ".txt"
 
 # Read the file, skipping the first 4 lines (metadata)
 header_row = pd.read_csv(
@@ -34,5 +35,6 @@ neff = [complex(s.replace("i", "j")) for s in neff]
 arg_dict = {"freq": freq, "wl": c / freq * 1e6, "n_eff": neff}
 arg_dict.update(mode_dispersion(arg_dict["wl"], np.real(arg_dict["n_eff"])))
 
+folder_path = os.path.dirname(os.path.abspath(__file__))
 hdf5_name = "waveguide.h5"
-svhd(hdf5_name, waveguidename, arg_dict)
+svhd(os.path.join(folder_path,hdf5_name), waveguidename, arg_dict)

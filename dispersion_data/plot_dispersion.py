@@ -2,11 +2,13 @@ from functions import read_hdf5 as rdhd
 from numpy import flip
 import matplotlib.pyplot as plt
 from scipy.interpolate import UnivariateSpline
+import os
 
+folder_path = os.path.dirname(os.path.abspath(__file__))
 materialname = "fused_silica"
 waveguidename = "pcf"
-data_label_m, data_m = rdhd("material.h5", materialname)
-data_label_w, data_w = rdhd("waveguide.h5", waveguidename)
+data_label_m, data_m = rdhd(os.path.join(folder_path,"material.h5"), materialname)
+data_label_w, data_w = rdhd(os.path.join(folder_path,"waveguide.h5"), waveguidename)
 print(data_label_m)
 print(data_label_w)
 

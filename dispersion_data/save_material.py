@@ -2,8 +2,11 @@ from numpy import arange
 import material_RI
 from disp_gen import material_dispersion
 from functions import save_dict_to_hdf5 as svhd
+import os
 
-file_name = "material.h5"
+folder_path = os.path.dirname(os.path.abspath(__file__))
+hdf5_name = "material.h5"
+file_name = os.path.join(folder_path,hdf5_name)
 material = "fused_silica"
 wl_um = arange(0.5, 2.0, 0.01)
 arg_dict = {"wl": wl_um}
