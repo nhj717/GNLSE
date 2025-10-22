@@ -63,3 +63,5 @@ spect = spect/max(spect) # normalize
 
 ax1.plot(tau, abs(uu)**2) 
 ax2.plot(freq, spect) 
+
+plt.show(block=True)

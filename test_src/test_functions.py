@@ -1,7 +1,7 @@
 from functions import *
 from saitoh import Saitoh
 import numpy as np
-
+import scipy.fft as fft
 
 def test_add():
     assert np.add(1, 2) == 3
@@ -19,3 +19,7 @@ def test_Saitoh():
     print(f"saito neff {x}")
     print(f"glass neff {z}")
     assert x < z and y < x
+
+def test_fftfreq():
+    a = fft.fftshift(fft.fftfreq(3000,1))
+    print(a)

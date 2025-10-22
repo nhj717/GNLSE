@@ -4,10 +4,12 @@ from numpy import flip, imag, real
 from scipy.interpolate import UnivariateSpline
 from scipy.constants import c, pi
 from datetime import datetime
+import os
 
-D_file = r"C:\Users\labadmin\PycharmProjects\GNLSE\dispersion_data\waveguide.h5"
+folder_path = os.getcwd()
+location = os.path.join(folder_path, "dispersion_data","waveguide.h5")
 waveguidename = "pcf"
-data_label_w, data_w = rdhd(D_file, waveguidename)
+data_label_w, data_w = rdhd(location, waveguidename)
 print(data_label_w)
 
 freq = data_w[data_label_w.index("freq")]
@@ -28,7 +30,7 @@ s = 0.05
 tr = 0.05
 P0 = 1
 lamb0 = 1.064
-T0 = 1
+T0 = 10e-15
 gamma = 0
 # gamma = 35e-30 * 1000 / (T0) ** 2
 

@@ -9,7 +9,7 @@ class fiber_propagation:
 
     def __init__(self, lambda0, alpha, beta2, beta3, s, tr, gamma, P0, T0):
 
-        self.f0 = c / lambda0 * 1e6
+        self.f0 = c / lambda0 * 1e6         #Hz
         self.s = s
         self.tr = tr
         self.gamma = gamma
@@ -28,7 +28,7 @@ class fiber_propagation:
             np.linspace(-self.tau_steps / 2, self.tau_steps / 2, self.tau_steps + 1)
             * self.deltau
         )
-        self.f = (fft.fftshift(self.tau / self.deltau) + self.f0) / self.Tspan
+        self.f = fft.fftshift(self.tau / self.deltau) / self.Tspan+self.f0
         self.omega = 2 * np.pi * self.f  # omega array
         self.alpha = alpha(self.f)
         self.beta2 = beta2(self.f)

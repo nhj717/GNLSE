@@ -26,11 +26,12 @@ class fiber_propagation:
         self.delz = self.z_tot/self.z_steps
         self.z = np.linspace(0,self.z_steps,self.z_steps+1)*self.delz
         
-        self.Tspan = 64     #multiple of T0
+        self.Tspan = 64*self.T0     #multiple of T0
         self.tau_steps = 3000
         self.deltau = self.Tspan/self.tau_steps
         self.tau = np.linspace(-self.tau_steps/2,self.tau_steps/2,self.tau_steps+1)*self.deltau
-        self.omega = fft.fftshift(self.tau/self.deltau)*(2*np.pi/self.Tspan)         # omega array
+        # self.omega = fft.fftshift(self.tau/self.deltau)*(2*np.pi/self.Tspan)         # omega array
+        self.omega = 2*np.pi*fft.fftshift(fft.fftfreq(self.tau_steps+1,self.deltau))
         
         
         if beta2 != 0:
@@ -117,6 +118,7 @@ class fiber_propagation:
         ax4.set_title('freq. domain')
         
         self.spec = abs(self.spectrum[:,0])**2
+        plt.show(block=True)
 
  
         
