@@ -14,22 +14,22 @@ class fiber_propagation:
         self.tr = tr
         self.gamma = gamma
         self.T0 = T0
-        self.N = 4  # order of soliton
+        self.N = 3  # order of soliton
 
-        self.z_tot = 0.5 * np.pi  # unit of LD
+        self.z_tot = np.pi  # unit of LD
         self.z_steps = round(20 * self.z_tot * self.N**2)  # No. of z steps
         self.delz = self.z_tot / self.z_steps
         self.z = np.linspace(0, self.z_steps, self.z_steps + 1) * self.delz
 
-        self.Tspan = 200 * T0  # multiple of T0
-        self.tau_steps = 4000
+        self.Tspan = 1000 * T0  # multiple of T0
+        self.tau_steps = 2**12
         self.deltau = self.Tspan / self.tau_steps
         self.tau = (
             np.linspace(-self.tau_steps / 2, self.tau_steps / 2, self.tau_steps + 1)
             * self.deltau
         )
-        self.f = fft.fftshift(self.tau / self.deltau) / self.Tspan+self.f0
-        self.omega = 2 * np.pi * self.f  # omega array
+        self.f= fft.fftfreq(self.tau_steps+1,self.deltau)
+        self.omega = 2*np.pi*self.f         # omega array
         self.alpha = alpha(self.f)
         self.beta2 = beta2(self.f)
         self.beta3 = beta3(self.f)
@@ -212,7 +212,7 @@ class fiber_propagation:
         )
 
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(
-            2, 2, figsize=(12, 15), gridspec_kw={"height_ratios": [2, 1]}
+            2, 2, figsize=(10, 8), gridspec_kw={"height_ratios": [2, 1]}
         )
         fig.suptitle("simulation")
 

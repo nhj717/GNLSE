@@ -25,9 +25,8 @@ beta2_spl = UnivariateSpline(freq, beta2, k=5)
 beta3_spl = UnivariateSpline(freq, beta3, k=5)
 n_spl = UnivariateSpline(freq, n, k=5)
 alpha_spl = UnivariateSpline(freq, alpha, k=5)
-alpha = 0.0001
-s = 0.05
-tr = 0.05
+s = 0.05*0
+tr = 0.05*0
 P0 = 1
 lamb0 = 1.064
 T0 = 10e-15

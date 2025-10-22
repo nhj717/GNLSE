@@ -21,7 +21,8 @@ step_num = round(20*fiblen*N^2) # No. of z steps
 deltaz = fiblen/step_num # step size in z
 dtau = (2*Tmax)/nt # step size in tau
 tau = np.arange(-nt/2,nt/2)*dtau # time array
-omega = fft.fftshift(np.arange(-nt/2,nt/2))*(np.pi/Tmax) # omega array
+omega1 = fft.fftshift(np.arange(-nt/2,nt/2))*(np.pi/Tmax) # omega array
+omega = 2*np.pi*fft.fftfreq(nt,dtau)
 uu = 1/np.cosh(tau) # sech pulse shape (can be modified)
 
 #---Plot input pulse shape and spectrum

@@ -113,7 +113,7 @@ class fiber_propagation:
         # ax2.set(autoscale_on=False, aspect='equal')
         # ax2.set_title('Spectrum')
         # # fig.colorbar(pcm,ax2)
-        
+        plt.show(block=True)
 
 alpha = 0
 beta2 = -35e-30*1000

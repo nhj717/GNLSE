@@ -18,20 +18,20 @@ class fiber_propagation:
         self.alpha = alpha
         self.beta2 = beta2
         self.gamma = gamma
-        self.T0 = 1
+        self.T0 = T0
         self.N = 3         #order of soliton
         
-        self.z_tot = 2*np.pi       #unit of LD
+        self.z_tot = np.pi       #unit of LD
         self.z_steps = round(20*self.z_tot*self.N**2) # No. of z steps
         self.delz = self.z_tot/self.z_steps
         self.z = np.linspace(0,self.z_steps,self.z_steps+1)*self.delz
         
         self.Tspan = 64*self.T0     #multiple of T0
-        self.tau_steps = 3000
+        self.tau_steps = 5000
         self.deltau = self.Tspan/self.tau_steps
         self.tau = np.linspace(-self.tau_steps/2,self.tau_steps/2,self.tau_steps+1)*self.deltau
         # self.omega = fft.fftshift(self.tau/self.deltau)*(2*np.pi/self.Tspan)         # omega array
-        self.omega = 2*np.pi*fft.fftshift(fft.fftfreq(self.tau_steps+1,self.deltau))
+        self.omega = 2*np.pi*fft.fftfreq(self.tau_steps+1,self.deltau)
         
         
         if beta2 != 0:
@@ -85,7 +85,7 @@ class fiber_propagation:
 
     
     def draw(self):
-        mag =  0.03
+        mag =  0.3
         index1, index2 = int(self.tau_steps/2-mag*self.tau_steps),int(self.tau_steps/2+mag*self.tau_steps)
         w = self.omega
         f = (1/(2*np.pi))*fft.ifftshift(w)
@@ -93,8 +93,8 @@ class fiber_propagation:
         tt,zz = np.meshgrid(tau,z)
         ff,zz_f = np.meshgrid(f,z)
         
-        vis1 = np.transpose((abs(self.E)/np.max(abs(self.E)))**2)
-        vis2 = np.transpose((abs(self.spectrum)/np.max(abs(self.spectrum)))**2)
+        vis1 = np.transpose(10*np.log10((abs(self.E)/np.max(abs(self.E)))**2))
+        vis2 = np.transpose(10*np.log10((abs(self.spectrum)/np.max(abs(self.spectrum)))**2))
         
         fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(2,2,figsize=(10,8))
         fig.suptitle('simulation')
@@ -126,8 +126,8 @@ alpha = 0
 beta2 = -1
 P0 = 1
 T0 = 1
-gamma = 35e-30*1000/(T0)**2
-# gamma = 0
+# gamma = 35e-30*1000/(T0)**2
+gamma = 0
 
 
 A = datetime.now()

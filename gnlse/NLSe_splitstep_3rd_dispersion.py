@@ -20,19 +20,21 @@ class fiber_propagation:
         self.beta2 = beta2
         self.beta3 = beta3
         self.gamma = gamma
-        self.T0 = 1
-        self.N = 3         #order of soliton
+        self.T0 = T0
+        self.f0 = 0
+        self.N = 2         #order of soliton
         
-        self.z_tot = np.pi       #unit of LD
+        self.z_tot = np.pi/2       #unit of LD
         self.z_steps = round(20*self.z_tot*self.N**2) # No. of z steps
         self.delz = self.z_tot/self.z_steps
         self.z = np.linspace(0,self.z_steps,self.z_steps+1)*self.delz
         
-        self.Tspan = 100    #multiple of T0
+        self.Tspan = 100*T0    #multiple of T0
         self.tau_steps = 5000
         self.deltau = self.Tspan/self.tau_steps
         self.tau = np.linspace(-self.tau_steps/2,self.tau_steps/2,self.tau_steps+1)*self.deltau
-        self.omega = fft.fftshift(self.tau/self.deltau)*(2*np.pi/self.Tspan)         # omega array
+        # self.omega = fft.fftshift(self.tau/self.deltau)*(2*np.pi/self.Tspan)         # omega array
+        self.omega = 2*np.pi*fft.fftfreq(self.tau_steps+1,self.deltau)
         
         
         if beta2 != 0:
@@ -52,7 +54,7 @@ class fiber_propagation:
             self.spectrum[:,0] = fft.ifft(self.E[:,0])
             
         if shape =="sech":
-            self.E[:,0] = 1/np.cosh(self.tau)
+            self.E[:,0] = self.N/np.cosh(self.tau)
             self.spectrum[:,0] = fft.ifft(self.E[:,0])
             
         if shape =="lorentzian":
@@ -86,53 +88,62 @@ class fiber_propagation:
 
     
     def draw(self):
-        mag1 =  0.1
-        mag2 = 0.3
+        T0 = self.T0
+        f0 = self.f0
+        mag1 =  1
+        mag2 = 1
         index1, index2 = int(self.tau_steps/2-mag1/2*self.tau_steps),int(self.tau_steps/2+mag1/2*self.tau_steps)
         index3, index4 = int(self.tau_steps/2-mag2/2*self.tau_steps),int(self.tau_steps/2+mag2/2*self.tau_steps)
         w = self.omega
-        f = (1/(2*np.pi))*fft.ifftshift(w)
+        f = fft.fftshift(w)/(2*np.pi)
         tau,z = self.tau ,self.z
         tt,zz = np.meshgrid(tau,z)
+        tt = tt/T0
         ff,zz_f = np.meshgrid(f,z)
+        ff = (ff-f0)*T0
         
-        vis1 = 10*np.log10(np.transpose((abs(self.E)/np.max(abs(self.E)))**2))
-        vis2 = 10*np.log10(np.transpose((abs(self.spectrum)/np.max(abs(self.spectrum)))**2))
+        vis1 = 10*np.log10(np.transpose((abs(self.E)/np.max(abs(self.E[:,0])))**2))
+        vis2 = 10*np.log10(np.transpose((abs(self.spectrum)/np.max(abs(self.spectrum[:,0])))**2))
         
-        fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(2,2,figsize=(12,15),gridspec_kw={'height_ratios': [2, 1]})
+        fig, ((ax1,ax2),(ax3,ax4)) = plt.subplots(2,2,figsize=(10,8),gridspec_kw={'height_ratios': [2, 1]})
         fig.suptitle('simulation')
         
-        pcm1 = ax1.pcolor(tt[:,index1:index2],zz[:,index1:index2],vis1[:,index1:index2], cmap='jet',vmin = -30,vmax = 0)
+        pcm1 = ax1.pcolor(tt,zz,vis1, cmap='jet',vmin = -30,vmax = 0)
         # ax1.set_aspect(30)
         ax1.set_title('Time domain')
         cb1 = plt.colorbar(pcm1,shrink = 0.75)
+        ax1.set_xlim(-5,5)
         
-        pcm2 = ax2.pcolor(ff[:,index3:index4],zz_f[:,index3:index4],vis2[:,index3:index4],cmap = 'jet',vmin = -62,vmax = 0)
+        pcm2 = ax2.pcolor(ff,zz_f,vis2,cmap = 'jet',vmin = -62,vmax = 0)
         # ax2.set_aspect(15)
         ax2.set_title('freq. domain')
         cb2 = plt.colorbar(pcm2,shrink = 0.75)
+        ax2.set_xlim(-5, 5)
             
-        ax3.plot(tau,abs(self.E[:,0])**2, label = 'before')
-        ax3.plot(tau,abs(self.E[:,-1])**2, label = 'after')
+        ax3.plot(tau/T0,(abs(self.E[:,0])/np.max(abs(self.E[:,0])))**2, label = 'before')
+        ax3.plot(tau/T0,(abs(self.E[:,-1])/np.max(abs(self.E[:,0])))**2, label = 'after')
         ax3.legend()
         ax3.set_title('Time domain')
+        ax3.set_xlim(-5, 5)
         
-        ax4.plot(f,abs(self.spectrum[:,0])**2, label = 'before')
-        ax4.plot(f,abs(self.spectrum[:,-1])**2, label = 'after')
+        ax4.plot((f-f0)*T0,(abs(self.spectrum[:,0])/np.max(abs(self.spectrum[:,0])))**2, label = 'before')
+        ax4.plot((f-f0)*T0,(abs(self.spectrum[:,-1])/np.max(abs(self.spectrum[:,0])))**2, label = 'after')
         ax4.legend()
         ax4.set_title('freq. domain')
+        ax4.set_xlim(-5, 5)
         
         self.spec = abs(self.spectrum[:,0])**2
+        plt.show(block=True)
 
  
         
 alpha = 0
-beta2 = -1
-beta3 = 0.04
+beta2 = -20e-20
+beta3 = 0
 P0 = 1
 T0 = 1
-gamma = 35e-30*1000/(T0)**2
-# gamma = 0
+# gamma = 35e-30*1000/(T0)**2
+gamma = 0
 
 
 A = datetime.now()
