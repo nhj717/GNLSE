@@ -7,46 +7,53 @@ import matplotlib.pyplot as plt
 class fiber_propagation:
     "set initial values"
 
-    def __init__(self, lambda0, alpha, beta2, beta3, s, tr, gamma, P0, T0):
+    def __init__(self, lambda0, P0,T0,z_tot=0, alpha=0, beta2=-1, beta3=0, s=0, tr=0, gamma=0):
 
-        self.f0 = c / lambda0 * 1e6         #Hz
+        self.f0 = c / lambda0 * 1e6                                     #pump frequency in Hz
         self.s = s
         self.tr = tr
-        self.gamma = gamma
-        self.T0 = T0
-        self.N = 3  # order of soliton
+        self.gamma = gamma                                              #nonlinear coeff from the fiber in W^-1/m
+        self.T0 = T0                                                    #period of the pulse in seconds
+        self.P0 = P0
 
-        self.z_tot = np.pi  # unit of LD
-        self.z_steps = round(20 * self.z_tot * self.N**2)  # No. of z steps
+        self.z_tot = z_tot                                              #total fiber length in meters
+        self.z_steps =2**10                                             # No. of z steps
         self.delz = self.z_tot / self.z_steps
-        self.z = np.linspace(0, self.z_steps, self.z_steps + 1) * self.delz
+        self.z = np.linspace(0, self.z_tot, self.z_steps + 1)       #z grid for simulation
 
-        self.Tspan = 1000 * T0  # multiple of T0
-        self.tau_steps = 2**12
-        self.deltau = self.Tspan / self.tau_steps
-        self.tau = (
-            np.linspace(-self.tau_steps / 2, self.tau_steps / 2, self.tau_steps + 1)
-            * self.deltau
-        )
-        self.f= fft.fftfreq(self.tau_steps+1,self.deltau)
-        self.omega = 2*np.pi*self.f         # omega array
-        self.alpha = alpha(self.f)
-        self.beta2 = beta2(self.f)
-        self.beta3 = beta3(self.f)
-        # if beta2 != 0:
-        #     self.Ld = T0**2 / abs(beta2)
-        # else:
-        #     self.Ld = 1 / gamma
+        self.Tspan = 1000 * T0                                          # total simulation grid for tau
+        self.t_steps = 2**12                                            # No. of tau steps
+        self.delt = self.Tspan / self.t_steps
+        self.t = (
+            np.linspace(-self.Tspan/ 2, self.Tspan / 2, self.t_steps+ 1)
+        )                                                                 #tau grid for simulation
+        self.f= fft.fftfreq(self.t_steps+1,self.delt)                 #freq grid for simulation
+        self.omega = 2 * np.pi * self.f  # omega array                    #angular freq
+        self.f_D = self.f+self.f0                                         #shifted freq grid for correct dispersion
+        self.omega_D = 2*np.pi*self.f_D                                   #shifted angular freq
 
-        self.E = np.zeros((self.tau_steps + 1, self.z_steps + 1), dtype="complex128")
+        try:
+            self.alpha = alpha(self.f_D)
+        except:
+            self.alpha = alpha                  #absorption coeff
+        try:
+            self.beta2 = beta2(self.f_D)
+        except:
+            self.beta2 = beta2                  #s^2/m
+        try:
+            self.beta3 = beta3(self.f_D)
+        except:
+            self.beta3 = beta3                  #s^3/m
+
+        self.E = np.zeros((self.t_steps + 1, self.z_steps + 1), dtype="complex128")           #initial grid for the E field
         self.spectrum = np.zeros(
-            (self.tau_steps + 1, self.z_steps + 1), dtype="complex128"
-        )
+            (self.t_steps + 1, self.z_steps + 1), dtype="complex128"
+        )                                                                                              #intial grid for the spectrum
 
     def source(self, shape):
 
         if shape == "gaussian":
-            self.E[:, 0] = np.exp(-(self.tau**2) / (2 * self.T0**2))
+            self.E[:, 0] = np.exp(-(self.t**2) / (2 * self.T0**2))
             self.spectrum[:, 0] = fft.ifft(self.E[:, 0])
 
         if shape == "sech":
@@ -130,63 +137,6 @@ class fiber_propagation:
                 * E[1:-1, i]
             )
             spectrum[:, i + 1] = dispersion * fft.ifft(E[:, i + 1])
-            Ei = fft.fft(spectrum[:, i + 1])
-            E[0:, i + 1] = (
-                np.exp(
-                    0.5
-                    * nonlinear
-                    * (
-                        abs(Ei[0]) ** 2
-                        + (1j)
-                        * s
-                        * np.conjugate(Ei[0])
-                        * (Ei[1] - Ei[-1])
-                        / (2 * self.deltau)
-                        + ((1j) * s - tr)
-                        * (abs(Ei[1]) ** 2 - abs(Ei[-1]) ** 2)
-                        / (2 * self.deltau)
-                    )
-                )
-                * Ei[0]
-            )
-            E[-1:, i + 1] = (
-                np.exp(
-                    0.5
-                    * nonlinear
-                    * (
-                        abs(Ei[1]) ** 2
-                        + (1j)
-                        * s
-                        * np.conjugate(Ei[-1])
-                        * (Ei[0] - Ei[-2])
-                        / (2 * self.deltau)
-                        + ((1j) * s - tr)
-                        * (abs(Ei[0]) ** 2 - abs(Ei[-2]) ** 2)
-                        / (2 * self.deltau)
-                    )
-                )
-                * Ei[1]
-            )
-            E[1:-1, i + 1] = (
-                np.exp(
-                    0.5
-                    * nonlinear
-                    * (
-                        abs(Ei[1:-1]) ** 2
-                        + (1j)
-                        * s
-                        * np.conjugate(Ei[1:-1])
-                        * (Ei[:-2] - Ei[2:])
-                        / (2 * self.deltau)
-                        + ((1j) * s - tr)
-                        * (abs(Ei[2:]) ** 2 - abs(Ei[:-2]) ** 2)
-                        / (2 * self.deltau)
-                    )
-                )
-                * Ei[1:-1]
-            )
-
-        spectrum[:, -1] = fft.ifft(E[:, -1])
 
         self.E = E
         self.spectrum = fft.ifftshift(spectrum, axes=0)

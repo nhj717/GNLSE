@@ -28,7 +28,7 @@ alpha_spl = UnivariateSpline(freq, alpha, k=5)
 s = 0.05*0
 tr = 0.05*0
 P0 = 1
-lamb0 = 1.064
+lamb0 = 0.920
 T0 = 10e-15
 gamma = 0
 # gamma = 35e-30 * 1000 / (T0) ** 2
