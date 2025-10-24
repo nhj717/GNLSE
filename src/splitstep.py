@@ -7,14 +7,15 @@ import matplotlib.pyplot as plt
 class fiber_propagation:
     "set initial values"
 
-    def __init__(self, lambda0, P0,T0,z_tot=0, alpha=0, beta2=-1, beta3=0, s=0, tr=0, gamma=0):
+    def __init__(self, lambda0, P0,T0,C=0,z_tot=0, alpha=0, beta2=-1, beta3=0, s=0, tr=0, gamma=0):
 
         self.f0 = c / lambda0 * 1e6                                     #pump frequency in Hz
         self.s = s
         self.tr = tr
         self.gamma = gamma                                              #nonlinear coeff from the fiber in W^-1/m
         self.T0 = T0                                                    #period of the pulse in seconds
-        self.P0 = P0
+        self.P0 = P0                                                    #peak power of the pulse
+        self.C = C                                                      #chirp of the pulse unitless
 
         self.z_tot = z_tot                                              #total fiber length in meters
         self.z_steps =2**10                                             # No. of z steps
@@ -53,110 +54,61 @@ class fiber_propagation:
     def source(self, shape):
 
         if shape == "gaussian":
-            self.E[:, 0] = np.exp(-(self.t**2) / (2 * self.T0**2))
+            self.E[:, 0] = np.sqrt(self.P0)*np.exp(-(1+1j*self.C)/2*(self.t/self.T0)**2)
             self.spectrum[:, 0] = fft.ifft(self.E[:, 0])
 
         if shape == "sech":
-            self.E[:, 0] = 1 / np.cosh(self.tau)
+            self.E[:, 0] = np.sqrt(self.P0) / np.cosh(self.t)
             self.spectrum[:, 0] = fft.ifft(self.E[:, 0])
 
         if shape == "lorentzian":
             T0 = self.T0
-            self.E[:, 0] = T0 / 2 / np.pi / (self.tau**2 + (T0 / 2) ** 2)
+            self.E[:, 0] = np.sqrt(self.P0)*T0 / 2 / np.pi / (self.t**2 + (T0 / 2) ** 2)
             self.spectrum[:, 0] = fft.ifft(self.E[:, 0])
 
     def run(self, shape):
         fiber_propagation.source(self, shape)
-
+        omega = self.omega
         E = self.E
         s = self.s
         tr = self.tr
+        gamma = self.gamma
         spectrum = self.spectrum
         dispersion = np.exp(
-            0.5 * (1j) * self.beta2 * self.omega**2 * self.delz
-            - (1 / 6) * (1j) * self.beta3 * self.omega**3 * self.delz
-            - self.alpha / 2
+            0.5 * self.delz* ((1j) * self.beta2/2 * omega**2
+            - (1j) * self.beta3/6 * omega**3
+            - self.alpha / 2)
         )  # phase factor
-        nonlinear = (1j) * self.N**2 * self.delz  # nonlinear phase factor
 
-        # scheme: 1/2N -> D -> 1/2N first half step nonlinear
+        # scheme: 1/2D -> N -> 1/2D first half step nonlinear
 
         for i in range(self.z_steps):
-            E[0:, i + 1] = (
-                np.exp(
-                    0.5
-                    * nonlinear
-                    * (
-                        abs(E[0, i]) ** 2
-                        + (1j)
-                        * s
-                        * np.conjugate(E[0, i])
-                        * (E[1, i] - E[-1, i])
-                        / (2 * self.deltau)
-                        + ((1j) * s - tr)
-                        * (abs(E[1, i]) ** 2 - abs(E[-1, i]) ** 2)
-                        / (2 * self.deltau)
-                    )
-                )
-                * E[0, i]
-            )
-            E[-1:, i + 1] = (
-                np.exp(
-                    0.5
-                    * nonlinear
-                    * (
-                        abs(E[1, i]) ** 2
-                        + (1j)
-                        * s
-                        * np.conjugate(E[-1, i])
-                        * (E[0, i] - E[-2, i])
-                        / (2 * self.deltau)
-                        + ((1j) * s - tr)
-                        * (abs(E[0, i]) ** 2 - abs(E[-2, i]) ** 2)
-                        / (2 * self.deltau)
-                    )
-                )
-                * E[1, i]
-            )
-            E[1:-1, i + 1] = (
-                np.exp(
-                    0.5
-                    * nonlinear
-                    * (
-                        abs(E[1:-1, i]) ** 2
-                        + (1j)
-                        * s
-                        * np.conjugate(E[0, i])
-                        * (E[1, i] - E[-1, i])
-                        / (2 * self.deltau)
-                        + ((1j) * s - tr)
-                        * (abs(E[2:, i]) ** 2 - abs(E[:-2, i]) ** 2)
-                        / (2 * self.deltau)
-                    )
-                )
-                * E[1:-1, i]
-            )
-            spectrum[:, i + 1] = dispersion * fft.ifft(E[:, i + 1])
+            #1/2 D step
+            spectrum_i = dispersion * spectrum[:, i]
+            E_i= fft.fft(spectrum_i)
+
+            #N step
+            nonlinear = 1j*gamma*(np.conjugate(E_i)*E_i+(1j*s-tr)*E_i*fft.fft(1j*omega*np.conjugate(spectrum_i))+(2j*s-tr)*np.conjugate(E_i)*fft.fft(1j*omega*spectrum_i))
+            E_i+=self.delz*nonlinear
+
+            #1/2 D step
+            spectrum_i = dispersion * fft.ifft(E_i)
+
+            #save result
+            spectrum[:, i+1] = spectrum_i
+            E[:, i+1] = E_i
 
         self.E = E
         self.spectrum = fft.ifftshift(spectrum, axes=0)
 
     def draw(self):
-        mag1 = 0.1
-        mag2 = 0.5
-        index1, index2 = int(self.tau_steps / 2 - mag1 / 2 * self.tau_steps), int(
-            self.tau_steps / 2 + mag1 / 2 * self.tau_steps
-        )
-        index3, index4 = int(self.tau_steps / 2 - mag2 / 2 * self.tau_steps), int(
-            self.tau_steps / 2 + mag2 / 2 * self.tau_steps
-        )
-        w = self.omega
-        f = (1 / (2 * np.pi)) * fft.ifftshift(w)
-        tau, z = self.tau, self.z
-        tt, zz = np.meshgrid(tau, z)
+        omega = self.omega
+        f = (1 / (2 * np.pi)) * fft.ifftshift(omega)
+        t, z = self.t, self.z
+        tt, zz = np.meshgrid(t, z)
         ff, zz_f = np.meshgrid(f, z)
 
-        vis1 = 10 * np.log10(np.transpose((abs(self.E) / np.max(abs(self.E))) ** 2))
+        vis1 = 10 * np.log10(np.transpose((abs(self.E) / np.max(abs(self.E[:,0]))) ** 2))
         vis2 = 10 * np.log10(
             np.transpose((abs(self.spectrum) / np.max(abs(self.spectrum))) ** 2)
         )

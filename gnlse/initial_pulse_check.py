@@ -31,7 +31,7 @@ ax1.plot(t*1e15,I*1e-9)
 ax1.set_title('Time domain')
 ax1.set_xlim(-5*T0*1e15,5*T0*1e15)
 ax1.set_xlabel('t [fs]')
-ax1.set_ylabel('P [GW]')
+ax1.set_ylabel('Power [GW]')
 
 ax2.plot(f*1e-15,spec)
 ax2.set_title('Freq. domain')
