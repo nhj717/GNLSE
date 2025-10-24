@@ -7,8 +7,8 @@ import os
 folder_path = os.path.dirname(os.path.abspath(__file__))
 materialname = "fused_silica"
 waveguidename = "pcf"
-data_label_m, data_m = rdhd(os.path.join(folder_path,"material.h5"), materialname)
-data_label_w, data_w = rdhd(os.path.join(folder_path,"waveguide.h5"), waveguidename)
+data_label_m, data_m = rdhd(os.path.join(folder_path, "material.h5"), materialname)
+data_label_w, data_w = rdhd(os.path.join(folder_path, "waveguide.h5"), waveguidename)
 print(data_label_m)
 print(data_label_w)
 
@@ -16,7 +16,7 @@ wl_m = data_m[data_label_m.index("wl")]
 D_m = data_m[data_label_m.index("D")]
 n = data_m[data_label_m.index("n")]
 
-wl_w = data_w[data_label_w.index("wl")]
+wl_w = data_w[data_label_w.index("wl_um")]
 D_w = data_w[data_label_w.index("D")]
 neff = data_w[data_label_w.index("n_eff")]
 D_w_spl = UnivariateSpline(flip(wl_w), flip(D_w), k=5)
