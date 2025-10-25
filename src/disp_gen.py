@@ -25,6 +25,14 @@ def mode_dispersion(w, wl_um, n):
     beta2_w = beta2(w)
     beta3 = beta_spl.derivative(n=3)
     beta3_w = beta3(w)
+    beta4 = beta_spl.derivative(n=4)
+    beta4_w = beta4(w)
     D = -2 * pi * c / wl**2 * beta2_w * 1e6
-    arg_dict = {"beta1": beta1_w, "beta2": beta2_w, "beta3": beta3_w, "D": D}
+    arg_dict = {
+        "beta1": beta1_w,
+        "beta2": beta2_w,
+        "beta3": beta3_w,
+        "beta4": beta4_w,
+        "D": D,
+    }
     return arg_dict
