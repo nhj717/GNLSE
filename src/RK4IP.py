@@ -71,12 +71,12 @@ class fiber_propagation:
         self.C = C  # chirp of the pulse unitless
 
         self.z_tot = z_tot  # total fiber length in meters
-        self.z_steps = 2**10  # No. of z steps
+        self.z_steps = 2**13  # No. of z steps
         self.delz = self.z_tot / self.z_steps
         self.z = np.linspace(0, self.z_tot, self.z_steps + 1)  # z grid for simulation
 
         self.Tspan = 100 * T0  # total simulation grid for tau
-        self.t_steps = 2**13  # No. of tau steps
+        self.t_steps = 2**12  # No. of tau steps
         self.delt = self.Tspan / self.t_steps
         self.t = np.linspace(
             -self.Tspan / 2, self.Tspan / 2, self.t_steps + 1
@@ -228,7 +228,7 @@ class fiber_propagation:
 
         pcm2 = ax2.pcolormesh(
             zz_lamb,
-            ff,
+            ll,
             vis2,
             cmap="jet",
             vmin=-40,
