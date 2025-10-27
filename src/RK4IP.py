@@ -32,15 +32,15 @@ def nonlinear_operator(A_t, gamma, omega0, omega, fr, hR_t, dt):
 
     # Raman convolution (zero-padding to avoid temporal aliasing)
     padN = len(A_t)
-    H_R_f = np.fft.fft(hR_t)
-    I_f = np.fft.fft(I_t)
-    conv_R_t = np.fft.ifft(H_R_f * I_f) * dt
+    H_R_f = fft.fft(hR_t)
+    I_f = fft.fft(I_t)
+    conv_R_t = fft.ifft(H_R_f * I_f) * dt
 
     # Instantaneous + delayed term
     power_term = (1 - fr) * I_t + fr * conv_R_t.real
 
     # Self-steepening (shock term)
-    dA_dt = np.fft.ifft(1j * omega * np.fft.fft(A_t))
+    dA_dt = fft.ifft(1j * omega * fft.fft(A_t))
 
     N_t = 1j * gamma * (A_t * power_term + (1j / omega0) * dA_dt * power_term)
     return N_t
@@ -188,10 +188,12 @@ class fiber_propagation:
         t, z = self.t, self.z
         zz, tt = np.meshgrid(z, t)
         zz_lamb, ll = np.meshgrid(z, lamb)
+        zz_f, ff = np.meshgrid(z, f)
 
         downsample_factor = 4  # reduces number of points to plot
         tt = tt[::downsample_factor, ::downsample_factor]
         zz = zz[::downsample_factor, ::downsample_factor]
+        ff = ff[::downsample_factor, ::downsample_factor]
         ll = ll[::downsample_factor, ::downsample_factor]
         zz_lamb = zz_lamb[::downsample_factor, ::downsample_factor]
         I = ((abs(self.E) / np.max(abs(self.E[:, 0]))) ** 2)[
@@ -225,8 +227,8 @@ class fiber_propagation:
         cb1 = plt.colorbar(pcm1, shrink=0.75)
 
         pcm2 = ax2.pcolormesh(
-            zz_lamb,
-            ll,
+            zz_f,
+            ff,
             vis2,
             cmap="jet",
             vmin=-40,
@@ -234,7 +236,7 @@ class fiber_propagation:
         )
         # ax2.set_aspect(15)
         ax2.set_title("freq. domain")
-        ax2.set_ylim(500, 1200)
+        # ax2.set_ylim(500, 1200)
         cb2 = plt.colorbar(pcm2, shrink=0.75)
 
         ax3.plot(t * 1e12, 1e-9 * abs(self.E[:, 0]) ** 2, label="before")
