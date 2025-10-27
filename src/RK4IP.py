@@ -227,7 +227,7 @@ class fiber_propagation:
         cb1 = plt.colorbar(pcm1, shrink=0.75)
 
         pcm2 = ax2.pcolormesh(
-            zz_f,
+            zz_lamb,
             ff,
             vis2,
             cmap="jet",
