@@ -76,7 +76,7 @@ class fiber_propagation:
         self.z = np.linspace(0, self.z_tot, self.z_steps + 1)  # z grid for simulation
 
         self.Tspan = 100 * T0  # total simulation grid for tau
-        self.t_steps = 2**12  # No. of tau steps
+        self.t_steps = 2**13  # No. of tau steps
         self.delt = self.Tspan / self.t_steps
         self.t = np.linspace(
             -self.Tspan / 2, self.Tspan / 2, self.t_steps + 1
@@ -84,7 +84,7 @@ class fiber_propagation:
         self.hR_t = raman_response(self.t)  # Raman response
         self.f = fft.fftfreq(self.t_steps + 1, self.delt)  # freq grid for simulation
         self.omega = 2 * np.pi * self.f  # omega array                    #angular freq
-        self.f_D = self.f + self.f0  # shifted freq grid for correct dispersion
+        self.f_D = fft.fftshift(self.f) + self.f0  # shifted freq grid for correct dispersion
         self.omega_D = 2 * np.pi * self.f_D  # shifted angular freq
 
         try:
@@ -142,10 +142,11 @@ class fiber_propagation:
         hR_t = self.hR_t
         gamma = self.gamma
         spectrum = self.spectrum
+        omega_b = omega*1e-12
         beta_w = 1j * (
-            self.beta2 / 2 * omega**2
-            - self.beta3 / 6 * omega**3
-            + self.beta4 / 24 * omega**4
+            self.beta2 / 2 * omega_b**2
+            - self.beta3 / 6 * omega_b**3
+            + self.beta4 / 24 * omega_b**4-(3.032e-10)/120*omega_b**5+(-4.169e-13)*omega_b**6-(2.57e-16)*omega_b**7
         )
         D_half = np.exp((beta_w - self.alpha / 2) * dz / 2)
 
@@ -182,7 +183,7 @@ class fiber_propagation:
         self.spectrum = fft.fftshift(spectrum, axes=0)
 
     def draw(self):
-        f = fft.fftshift(self.f) + self.f0
+        f = self.f_D
         lamb = c / f * 1e9
         t, z = self.t, self.z
         zz, tt = np.meshgrid(z, t)
@@ -197,10 +198,10 @@ class fiber_propagation:
             ::downsample_factor, ::downsample_factor
         ]
         I_log_safe = np.where(I == 0, 1e-60, I)
-        I_fft = ((abs(self.spectrum) / np.max(abs(self.spectrum[:, 0]))) ** 2)[
+        spectrum = ((abs(self.spectrum) / np.max(abs(self.spectrum[:, 0]))))[
             ::downsample_factor, ::downsample_factor
         ]
-        spectrum_log_safe = np.where(I_fft == 0, 1e-60, I_fft)
+        spectrum_log_safe = np.where(spectrum == 0, 1e-60, spectrum)
 
         vis1 = 10 * np.log10(I_log_safe)
         vis2 = 10 * np.log10(spectrum_log_safe)
@@ -233,7 +234,7 @@ class fiber_propagation:
         )
         # ax2.set_aspect(15)
         ax2.set_title("freq. domain")
-        ax2.set_ylim(700, 1200)
+        ax2.set_ylim(500, 1200)
         cb2 = plt.colorbar(pcm2, shrink=0.75)
 
         ax3.plot(t * 1e12, 1e-9 * abs(self.E[:, 0]) ** 2, label="before")
@@ -243,8 +244,9 @@ class fiber_propagation:
         ax3.legend()
         ax3.set_title("Time domain")
 
-        ax4.plot(f, abs(self.spectrum[:, 0]) ** 2, label="before")
-        ax4.plot(f, abs(self.spectrum[:, -1]) ** 2, label="after")
+        ax4.plot(lamb, abs(self.spectrum[:, 0]) ** 2, label="before")
+        ax4.plot(lamb, abs(self.spectrum[:, -1]) ** 2, label="after")
+        ax4.set_xlim(500, 1200)
         ax4.legend()
         ax4.set_title("freq. domain")
 
