@@ -265,7 +265,7 @@ class fiber_propagation:
 
         ax4.plot(ll[0, :], S_log[0, :], label="before")
         ax4.plot(ll[0, :], S_log[-1, :], label="after")
-        ax4.set_xlim(500, 1200)
+        ax4.set_xlim(500, 1400)
         ax4.set_ylim(-200, 10)
         ax4.legend()
         ax4.set_title("freq. domain")

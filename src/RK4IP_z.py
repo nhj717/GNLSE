@@ -73,7 +73,7 @@ class fiber_propagation:
         self.delz = self.z_tot / self.z_steps
         self.z = np.arange(0, self.z_steps) * self.delz  # z grid for simulation
 
-        self.Tspan = 100 * T0  # total simulation grid for tau
+        self.Tspan = 50 * T0  # total simulation grid for tau
         self.t_steps = 2**13  # No. of tau steps
         self.delt = self.Tspan / self.t_steps
         self.t = (
@@ -90,7 +90,7 @@ class fiber_propagation:
 
         self.beta = beta(self.omega)
         self.beta0 = beta(self.omega0)
-        self.beta1 = beta1(self.omega)
+        self.beta1 = beta1(self.omega0)
 
         self.fr = 0.18  # Raman coefficient
 

@@ -27,11 +27,12 @@ T0 = T_FWHM / (2 * sqrt(log(2)))
 # P0 = E_pulse / T_FWHM  # peak power in W
 
 ###From Average Power###
-# Pavg = 0.4  # Watts
-# R_R = 80e6
-# P0 = Pavg / (T0 * R_R)
+
 Np = 2**7
-P_max = 30e3
+# P_max = 1e3
+Pavg = 1.2  # Watts
+R_R = 80e6
+P_max = Pavg / (T0 * R_R)
 delP = P_max / Np
 P0 = arange(1, Np + 1) * delP
 

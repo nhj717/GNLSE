@@ -30,7 +30,10 @@ T0 = T_FWHM / (2 * sqrt(log(2)))
 # Pavg = 0.4  # Watts
 # R_R = 80e6
 # P0 = Pavg / (T0 * R_R)
-P0 = 50e3
+Pavg = 1.2  # Watts
+R_R = 80e6
+P0 = Pavg / (T0 * R_R)
+# P0 = 15e3
 
 # Fiber informaiton
 omega = data[data_label.index("omega")]
