@@ -1,4 +1,4 @@
-from RK4IP import fiber_propagation
+from RK4IP_z import fiber_propagation
 from scipy import fft
 from scipy.constants import c
 import numpy as np

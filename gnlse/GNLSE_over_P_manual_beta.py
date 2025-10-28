@@ -1,6 +1,6 @@
-from RK4IP_z import fiber_propagation
+from RK4IP_P_manual import fiber_propagation
 from functions import read_hdf5 as rdhd
-from numpy import flip, imag, real, sqrt, log
+from numpy import flip, imag, real, sqrt, log, arange
 from scipy.interpolate import UnivariateSpline
 from scipy.constants import c, pi
 from datetime import datetime
@@ -30,7 +30,10 @@ T0 = T_FWHM / (2 * sqrt(log(2)))
 # Pavg = 0.4  # Watts
 # R_R = 80e6
 # P0 = Pavg / (T0 * R_R)
-P0 = 50e3
+Np = 2**7
+P_max = 10e3
+delP = P_max / Np
+P0 = arange(1, Np + 1) * delP
 
 # Fiber informaiton
 omega = data[data_label.index("omega")]
@@ -43,26 +46,26 @@ n = real(neff)
 k = -imag(neff)
 alpha = 2 * omega * k / c
 beta0 = n * omega / c
-beta0_spl = UnivariateSpline(omega, beta0, k=5)
-beta1_spl = UnivariateSpline(omega, beta1, k=5)
+beta2_spl = UnivariateSpline(omega, beta0, k=5)
+beta3_spl = UnivariateSpline(omega, beta1, k=5)
 alpha_spl = UnivariateSpline(omega, alpha, k=5)
 n2 = 2.6e-20  # nonlinear index in m^2/W
 A_eff = 9.2e-12  # Effective mode area in m2
-gamma = 2 * pi * n2 / lambda0 / A_eff
-# gamma = 0
+# gamma = 2 * pi * n2 / lambda0 / A_eff
+gamma = 0
 C = 0
 z_tot = 0.1  # Fiber length in m
 
 
 A = datetime.now()
-sim = fiber_propagation(
-    lambda0, P0, T0, z_tot, C, alpha_spl, beta0_spl, beta1_spl, gamma
-)
-# sim = fiber_propagation(lambda0, P0, T0, z_tot, C, 0, beta0_spl, beta1_spl, gamma)
+# sim = fiber_propagation(
+#     lambda0, P0, T0, z_tot, C, alpha_spl, beta0_spl, beta1_spl, gamma
+# )
+sim = fiber_propagation(lambda0, P0, T0, z_tot, C, 0, beta2_spl, beta3_spl, 0, 0, gamma)
 sim.source("gaussian")
-sim.propagate_z()
+sim.propagate_P()
 
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
 
-sim.draw_z()
+sim.draw_P()
