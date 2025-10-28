@@ -60,9 +60,9 @@ sim = fiber_propagation(
 )
 # sim = fiber_propagation(lambda0, P0, T0, z_tot, C, 0, beta0_spl, beta1_spl, gamma)
 sim.source("gaussian")
-sim.propagate()
+sim.propagate_z()
 
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
 
-sim.draw()
+sim.draw_z()

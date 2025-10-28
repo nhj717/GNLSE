@@ -1,6 +1,6 @@
 from RK4IP import fiber_propagation
 from functions import read_hdf5 as rdhd
-from numpy import flip, imag, real, sqrt, log
+from numpy import flip, imag, real, sqrt, log, arange
 from scipy.interpolate import UnivariateSpline
 from scipy.constants import c, pi
 from datetime import datetime
@@ -30,7 +30,10 @@ T0 = T_FWHM / (2 * sqrt(log(2)))
 # Pavg = 0.4  # Watts
 # R_R = 80e6
 # P0 = Pavg / (T0 * R_R)
-P0 = 10e3
+Np = 10
+P_max = 10e3
+delP = P_max/Np
+P0 = arange(1,Np+1)*delP
 
 # Fiber informaiton
 omega = data[data_label.index("omega")]
