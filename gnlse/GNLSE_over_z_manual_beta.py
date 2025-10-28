@@ -1,4 +1,4 @@
-from RK4IP import fiber_propagation
+from RK4IP_manual import fiber_propagation
 from functions import read_hdf5 as rdhd
 from numpy import flip, imag, real, sqrt, log
 from scipy.interpolate import UnivariateSpline
@@ -13,38 +13,33 @@ data_label, data = rdhd(location, waveguidename)
 print(data_label)
 
 # Initial Pulse information
-
-# P0 = 1e3                                   #peak power in W
-lambda0_um = 0.850 # pump wl in um
+lambda0_um = 0.850  # pump wl in um
 lambda0 = lambda0_um * 1e-6
 w0 = 2 * pi * c / lambda0
 T_FWHM = 50e-15
-T0 = T_FWHM / (2 * sqrt(log(2)))
-P0 = 1e4
+T0 = T_FWHM / (2 * log(1 + sqrt(2)))
+P0 = 10e3  # peak power in W
 
 # Fiber informaiton
-beta2 = -1.276e-2
-beta3 = 8.119e-5
-beta4 = -1.321e-7
+beta2 = -1.276e-26
+beta3 = 8.119e-41
+beta4 = -1.321e-55
+beta5 = 3.032e-70
+beta6 = -4.169e-85
+beta7 = 2.57e-110
 alpha = 0
 
 s = 1 / w0  # self steepening in seconds
-tr = 3e-17  # Raman scattering in seconds
-n2 = 2.6e-20  # nonlinear index in m^2/W
-A_eff = 9.2e-12  # Effective mode area in m2
 gamma = 0.045
-# gamma = 0
 C = 0
 z_tot = 0.1  # Fiber length in m
 
 
 A = datetime.now()
-# sim = fiber_propagation(lambda0, P0, T0, z_tot)
-# sim = fiber_propagation(lambda0, P0, T0, z_tot, C, 0, 0, 0, 0, gamma)
 sim = fiber_propagation(
-    lambda0, P0, T0, z_tot, C, 0, beta2, beta3, beta4, gamma
+    lambda0, P0, T0, z_tot, C, alpha, beta2, beta3, beta4, beta5, beta6, beta7, gamma
 )
-sim.source("gaussian")
+sim.source("sech")
 sim.propagate()
 
 B = datetime.now()

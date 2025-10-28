@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.constants import c
+from math import factorial
 import scipy.fft as fft
 import matplotlib.pyplot as plt
 
@@ -57,8 +58,12 @@ class fiber_propagation:
         z_tot=0,
         C=0,
         alpha=0,
-        beta=0,
-        beta1=0,
+        beta2=-1e-26,
+        beta3=0,
+        beta4=0,
+        beta5=0,
+        beta6=0,
+        beta7=0,
         gamma=0,
     ):
 
@@ -75,7 +80,7 @@ class fiber_propagation:
         self.z = np.arange(0, self.z_steps) * self.delz  # z grid for simulation
 
         self.Tspan = 100 * T0  # total simulation grid for tau
-        self.t_steps = 2**14  # No. of tau steps
+        self.t_steps = 2**12  # No. of tau steps
         self.delt = self.Tspan / self.t_steps
         self.t = (
             np.arange(-self.t_steps / 2, self.t_steps / 2) * self.delt
@@ -84,14 +89,13 @@ class fiber_propagation:
         self.f = fft.fftfreq(self.t_steps, self.delt)  # freq grid for simulation
         self.omega = 2 * np.pi * self.f  # omega array                    #angular freq
 
-        try:
-            self.alpha = alpha(self.omega)
-        except:
-            self.alpha = alpha  # absorption coeff
-
-        self.beta = beta(self.omega)
-        self.beta0 = beta(self.omega0)
-        self.beta1 = beta1(self.omega)
+        self.alpha = alpha  # absorption coeff
+        self.beta2 = beta2  # s^2/m
+        self.beta3 = beta3  # s^3/m
+        self.beta4 = beta4  # s^4/m
+        self.beta5 = beta5  # s^2/m
+        self.beta6 = beta6  # s^3/m
+        self.beta7 = beta7  # s^4/m
 
         self.fr = 0.18  # Raman coefficient
 
@@ -142,8 +146,15 @@ class fiber_propagation:
         hR_t = self.hR_t
         gamma = self.gamma
         spectrum = self.spectrum
-        beta_w = 1j * (self.beta - self.beta0 - self.beta1 * (omega - omega0))
-        # beta_w = 1j * (self.beta)
+        omega_diff = omega - omega0
+        beta_w = 1j * (
+            self.beta2 / factorial(2) * omega_diff**2
+            + self.beta3 / factorial(3) * omega_diff**3
+            + self.beta4 / factorial(4) * omega_diff**4
+            + self.beta5 / factorial(5) * omega_diff**5
+            + self.beta6 / factorial(6) * omega_diff**6
+            + self.beta7 / factorial(7) * omega_diff**7
+        )
         D_half = np.exp((beta_w - self.alpha / 2) * dz / 2)
 
         # scheme: 1/2D -> N -> 1/2D first half step nonlinear
@@ -159,7 +170,6 @@ class fiber_propagation:
                     dz * nonlinear_operator(E[:, i], gamma, omega0, omega, fr, hR_t, dt)
                 )
             )
-            # k1 = dz * nonlinear_operator(A_I, gamma, omega0, omega, fr, hR_t, dt)
 
             k2 = dz * nonlinear_operator(
                 A_I + k1 / 2, gamma, omega0, omega, fr, hR_t, dt
@@ -243,7 +253,7 @@ class fiber_propagation:
         )
         # ax2.set_aspect(15)
         ax2.set_title("freq. domain")
-        ax2.set_xlim(735, 1095)
+        ax2.set_xlim(500, 1200)
         cb2 = plt.colorbar(pcm2, shrink=0.75)
 
         ax3.plot(t * 1e12, 1e-9 * abs(self.E[:, 0]) ** 2, label="before")
@@ -255,7 +265,7 @@ class fiber_propagation:
 
         ax4.plot(ll[0, :], S_log[0, :], label="before")
         ax4.plot(ll[0, :], S_log[-1, :], label="after")
-        ax4.set_xlim(735, 1095)
+        ax4.set_xlim(500, 1200)
         ax4.set_ylim(-200, 10)
         ax4.legend()
         ax4.set_title("freq. domain")
