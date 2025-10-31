@@ -3,49 +3,8 @@ from scipy.constants import c
 from math import factorial
 import scipy.fft as fft
 import matplotlib.pyplot as plt
-
-
-def raman_response(t, tau1=12.2e-15, tau2=32e-15):
-    """
-    Raman response for silica. Agrawal NFO Eq. (2.4.18).
-    Returns h_R(t) normalized such that ∫ h_R(t) dt = 1.
-    """
-    h = np.zeros_like(t)
-    pos_t = t >= 0
-    h[pos_t] = (
-        (tau1**2 + tau2**2)
-        / (tau1 * tau2**2)
-        * np.exp(-t[pos_t] / tau2)
-        * np.sin(t[pos_t] / tau1)
-    )
-    # Normalize area to 1
-    h /= np.trapezoid(h, t)
-    return h
-
-
-def nonlinear_operator(A_t, gamma, omega0, omega, fr, hR_t, dt):
-    """
-    Full nonlinear term with self-steepening and Raman.
-    FFT convolution is used for Raman term.
-    """
-    # Instantaneous intensity
-    I_t = np.abs(A_t) ** 2
-
-    # Raman convolution (zero-padding to avoid temporal aliasing)
-    padN = len(A_t)
-    H_R_f = fft.fft(hR_t)
-    I_f = fft.fft(I_t)
-    conv_R_t = fft.ifft(H_R_f * I_f) * dt
-
-    # Instantaneous + delayed term
-    power_term = (1 - fr) * I_t + fr * conv_R_t.real
-
-    # Self-steepening (shock term)
-    dA_dt = fft.ifft(1j * (omega - omega0) * fft.fft(A_t))
-
-    N_t = 1j * gamma * (A_t * power_term + (1j / omega0) * dA_dt * power_term)
-    return N_t
-
+from raman_response import raman_response as R_t
+from nonlinear_operator import nonlinear_operator as N_op
 
 class fiber_propagation:
     "set initial values"
@@ -79,13 +38,13 @@ class fiber_propagation:
         self.delz = self.z_tot / self.z_steps
         self.z = np.arange(0, self.z_steps) * self.delz  # z grid for simulation
 
-        self.Tspan = 100 * T0  # total simulation grid for tau
-        self.t_steps = 2**12  # No. of tau steps
+        self.Tspan = 200 * T0  # total simulation grid for tau
+        self.t_steps = 2**13  # No. of tau steps
         self.delt = self.Tspan / self.t_steps
         self.t = (
             np.arange(-self.t_steps / 2, self.t_steps / 2) * self.delt
         )  # tau grid for simulations
-        self.hR_t = raman_response(self.t)  # Raman response
+        self.hR_t = R_t(self.t)  # Raman response
         self.f = fft.fftfreq(self.t_steps, self.delt)  # freq grid for simulation
         self.omega = 2 * np.pi * self.f  # omega array                    #angular freq
 
@@ -167,17 +126,17 @@ class fiber_propagation:
             k1 = fft.ifft(
                 D_half
                 * fft.fft(
-                    dz * nonlinear_operator(E[:, i], gamma, omega0, omega, fr, hR_t, dt)
+                    dz * N_op(E[:, i], gamma, omega0, omega, fr, hR_t, dt)
                 )
             )
 
-            k2 = dz * nonlinear_operator(
+            k2 = dz * N_op(
                 A_I + k1 / 2, gamma, omega0, omega, fr, hR_t, dt
             )
-            k3 = dz * nonlinear_operator(
+            k3 = dz * N_op(
                 A_I + k2 / 2, gamma, omega0, omega, fr, hR_t, dt
             )
-            k4 = dz * nonlinear_operator(
+            k4 = dz * N_op(
                 fft.ifft(D_half * fft.fft(A_I + k3)), gamma, omega0, omega, fr, hR_t, dt
             )
 
@@ -247,7 +206,7 @@ class fiber_propagation:
             ll,
             zz_lamb,
             S_log,
-            cmap="inferno",
+            cmap="jet",
             vmin=-40,
             vmax=0,
         )
