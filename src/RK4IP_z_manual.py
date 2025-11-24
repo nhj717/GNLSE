@@ -3,7 +3,8 @@ from scipy.constants import c
 from math import factorial
 import scipy.fft as fft
 import matplotlib.pyplot as plt
-from raman_response import raman_response as R_t
+# from raman_response import hollenbeck_cantrell_hr as R_t
+from raman_response import single_damped_HO as R_t
 from nonlinear_operator import nonlinear_operator as N_op
 
 class fiber_propagation:
@@ -38,8 +39,8 @@ class fiber_propagation:
         self.delz = self.z_tot / self.z_steps
         self.z = np.arange(0, self.z_steps) * self.delz  # z grid for simulation
 
-        self.Tspan = 200 * T0  # total simulation grid for tau
-        self.t_steps = 2**13  # No. of tau steps
+        self.Tspan = 100 * T0  # total simulation grid for tau
+        self.t_steps = 2**12# No. of tau steps
         self.delt = self.Tspan / self.t_steps
         self.t = (
             np.arange(-self.t_steps / 2, self.t_steps / 2) * self.delt
@@ -56,7 +57,7 @@ class fiber_propagation:
         self.beta6 = beta6  # s^3/m
         self.beta7 = beta7  # s^4/m
 
-        self.fr = 0.18  # Raman coefficient
+        self.fr = 0.0  # Raman coefficient
 
         self.E = np.zeros(
             (self.t_steps, self.z_steps), dtype="complex128"

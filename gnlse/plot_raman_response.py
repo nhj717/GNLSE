@@ -1,5 +1,6 @@
 import numpy as np
 from raman_response import hollenbeck_cantrell_hr as R_t
+from raman_response import single_damped_HO as R_t0
 import matplotlib.pyplot as plt
 
 T_FWHM = 50e-15
@@ -11,7 +12,7 @@ delt = Tspan / t_steps
 t = (
         np.arange(-t_steps / 2, t_steps / 2) * delt
 )  # tau grid for simulations
-hR_t = R_t(t)  # Raman response
+hR_t = R_t0(t)  # Raman response
 
 plt.plot(t, hR_t)
 plt.show(block=True)
