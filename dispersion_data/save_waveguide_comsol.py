@@ -8,7 +8,7 @@ import os
 # Path to your COMSOL text file
 project_path = os.getcwd()
 comsol_folder = "comsol_dispersion"
-waveguidename = "pcf"
+waveguidename = "20230330_4_ideal"
 filename = os.path.join(project_path, comsol_folder, waveguidename) + ".txt"
 
 # Read the file, skipping the first 4 lines (metadata)
@@ -31,6 +31,7 @@ mode_overlap = np.array(df["mode_overlap"])
 freq = np.array(df["freq"])[mode_overlap == 1]
 omega = 2 * pi * freq
 neff = np.array(df["neff"])[mode_overlap == 1]
+Aeff = np.array(df["A_eff"])[mode_overlap == 1]
 neff = [complex(s.replace("i", "j")) for s in neff]
 
 # ********frequency must be in the ascending order********
