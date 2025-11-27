@@ -6,7 +6,7 @@ import os
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
 materialname = "fused_silica"
-waveguidename = "20230330_4_ideal"
+waveguidename = "20240422_3B_SEM_reduced"
 data_label_m, data_m = rdhd(os.path.join(folder_path, "material.h5"), materialname)
 data_label_w, data_w = rdhd(os.path.join(folder_path, "waveguide.h5"), waveguidename)
 print(data_label_m)

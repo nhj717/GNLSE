@@ -25,11 +25,10 @@ beta2 = -1.276e-26
 beta3 = 8.119e-41
 beta4 = -1.321e-55
 beta5 = 3.032e-70
-beta6 = -4.169e-85
-beta7 = 2.57e-110
+beta6 = -4.196e-85
+beta7 = 2.57e-100
 alpha = 0
 
-s = 1 / w0  # self steepening in seconds
 gamma = 0.045
 C = 0
 z_tot = 0.1  # Fiber length in m

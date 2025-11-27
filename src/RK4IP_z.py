@@ -39,7 +39,7 @@ def nonlinear_operator(A_t, gamma, omega0, omega, fr, hR_t, dt):
     power_term = (1 - fr) * I_t + fr * conv_R_t.real
 
     # Self-steepening (shock term)
-    dA_dt = fft.ifft(1j * (omega - omega0) * fft.fft(A_t))
+    dA_dt = fft.ifft(-1j * (omega - omega0) * fft.fft(A_t))
 
     N_t = 1j * gamma * (A_t * power_term + (1j / omega0) * dA_dt * power_term)
     return N_t

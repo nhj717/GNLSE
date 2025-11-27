@@ -4,8 +4,7 @@ from math import factorial
 import scipy.fft as fft
 import matplotlib.pyplot as plt
 
-# from raman_response import hollenbeck_cantrell_hr as R_t
-from raman_response import single_damped_HO as R_t
+from raman_response import hollenbeck_cantrell_hr as R_t
 from nonlinear_operator import nonlinear_operator as N_op
 
 
