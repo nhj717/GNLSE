@@ -1,14 +1,14 @@
 import pandas as pd
 import numpy as np
 from scipy.constants import c, pi
-from disp_gen import mode_dispersion
+from dispersion_generator import mode_dispersion
 from functions import save_dict_to_hdf5 as svhd
 import os
 
 # Path to your COMSOL text file
 project_path = os.getcwd()
 comsol_folder = "comsol_dispersion"
-waveguidename = "20240422_3B_SEM_reduced"
+waveguidename = "20240422_3B_SEM"
 filename = os.path.join(project_path, comsol_folder, waveguidename) + ".txt"
 
 # Read the file, skipping the first 4 lines (metadata)
@@ -35,7 +35,13 @@ Aeff = np.array(df["A_eff"])[mode_overlap == 1]
 neff = [complex(s.replace("i", "j")) for s in neff]
 
 # ********frequency must be in the ascending order********
-arg_dict = {"freq": freq, "omega": omega, "wl_um": c / freq * 1e6, "n_eff": neff}
+arg_dict = {
+    "freq": freq,
+    "omega": omega,
+    "wl_um": c / freq * 1e6,
+    "n_eff": neff,
+    "A_eff": Aeff,
+}
 arg_dict.update(
     mode_dispersion(arg_dict["omega"], arg_dict["wl_um"], np.real(arg_dict["n_eff"]))
 )
