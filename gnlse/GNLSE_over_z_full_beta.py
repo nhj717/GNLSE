@@ -22,7 +22,7 @@ elif shape == "lorentzian":
 # Pavg = 0.4  # Watts
 # R_R = 80e6
 # P0 = Pavg / (T0 * R_R)
-Pavg = 1.2  # Watts
+Pavg = 0.5  # Watts
 R_R = 80e6
 P0 = Pavg / (T0 * R_R)
 # P0 = 15e3
@@ -35,8 +35,8 @@ z_steps = 2**10
 dz = z_tot / z_steps
 z = np.arange(0, z_steps) * dz  # z grid for simulation
 
-T_span = 100 * T0
-t_steps = 2**12
+T_span = 50 * T0
+t_steps = 2**13
 dt = T_span / t_steps
 t = np.arange(-t_steps / 2, t_steps / 2) * dt  # tau grid for simulations
 f = fftfreq(t_steps, T_span / t_steps)  # freq grid for simulation
@@ -46,7 +46,7 @@ omega_diff = omega - omega0
 # Fiber informaiton
 folder_path = os.getcwd()
 location = os.path.join(folder_path, "dispersion_data", "waveguide.h5")
-waveguidename = "20230330_4_ideal"
+waveguidename = "20240422_3B_ideal"
 data_label, data = rdhd(location, waveguidename)
 print(data_label)
 
@@ -61,10 +61,11 @@ n = np.real(neff)
 k = -np.imag(neff)
 alpha = 2 * omega_data * k / c
 beta0 = n * omega_data / c
+alpha_spl = UnivariateSpline(omega_data, alpha, k=5)
 beta0_spl = UnivariateSpline(omega_data, beta0, k=5)
 beta1_spl = UnivariateSpline(omega_data, beta1, k=5)
-alpha_spl = UnivariateSpline(omega_data, alpha, k=5)
 
+alpha_w = alpha_spl(omega)
 beta_w = 1j * (beta0_spl(omega) - beta0_spl(omega0) - beta1_spl(omega0) * omega_diff)
 n2 = 2.6e-20  # nonlinear index of glass at 920nm in m^2/W
 A_eff = Aeff[np.argmin(abs(omega_data - omega0))]  # Effective mode area in m2
@@ -77,7 +78,7 @@ z_tot = 0.1  # Fiber length in m
 A = datetime.now()
 sim = fiber_propagation(omega0, dz, z, dt, t, f, omega_diff)
 sim.source("sech", P0, T0, C)
-sim.propagate("RK4IP", alpha, beta_w, gamma)
+sim.propagate("RK4IP", alpha_w, beta_w, gamma)
 
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())

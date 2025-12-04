@@ -20,8 +20,8 @@ def nonlinear_operator(A_t, gamma, omega0, omega_diff, fr, hR_t, dt):
     SA_t = S * A_t
 
     # Self-steepening (shock term)
-    dSA_dt = fft.ifft(-1j * omega_diff * fft.fft(SA_t))
+    dSA_dt = fft.ifft(1j * omega_diff * fft.fft(SA_t))
 
-    N_t = 1j * gamma * (SA_t + 1j / omega0 * dSA_dt)
+    N_t = 1j * gamma * (SA_t + 1 / omega0* dSA_dt)
     ### the 1j infront of dSA_dt neglects raman effect... it should not be imaginary but the simulation diverges otherwise
     return N_t
