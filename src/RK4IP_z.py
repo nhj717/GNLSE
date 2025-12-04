@@ -32,7 +32,7 @@ class fiber_propagation:
             np.shape(self.E), dtype="complex128"
         )  # intial grid for the spectrum
 
-    def source(self, shape, P0, T0 , C=0):
+    def source(self, shape, P0, T0, C=0):
         self.T0 = T0
         if shape == "gaussian":
             self.E[:, 0] = (
