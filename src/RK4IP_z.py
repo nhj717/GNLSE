@@ -76,6 +76,21 @@ class fiber_propagation:
                 self.E,
                 self.spectrum,
             )
+        elif type == "SSFM_symmetric":
+            # scheme: split step fourier method in 2nd order.
+            self.E, self.spectrum = methods.SSFM_symmetric(
+                alpha,
+                beta,
+                gamma,
+                self.omega0,
+                self.omega_diff,
+                self.fr,
+                self.hR_t,
+                self.dz,
+                self.dt,
+                self.E,
+                self.spectrum,
+            )
 
     def draw(self):
         f = self.f

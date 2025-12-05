@@ -15,7 +15,7 @@ omega0 = 2 * pi * c / lambda0
 T_FWHM = 140e-15
 if shape == "gaussian":
     T0 = T_FWHM / (2 * np.sqrt(np.log(2)))
-elif shape == "lorentzian":
+elif shape == "sech":
     T0 = T_FWHM / (2 * np.log(1 + np.sqrt(2)))  # pulse duration in seconds
 
 ###From Average Power###
