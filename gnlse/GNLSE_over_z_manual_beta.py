@@ -15,23 +15,21 @@ if shape == "gaussian":
     T0 = T_FWHM / (2 * np.sqrt(np.log(2)))
 elif shape == "sech":
     T0 = T_FWHM / (2 * np.log(1 + np.sqrt(2)))  # pulse duration in seconds
-T0 = T_FWHM / (2 * np.log(1 + np.sqrt(2)))  # pulse duration in seconds
 P0 = 10e3  # peak power in W
 C = 0  # chirp
 
 # Grid information
 z_tot = 0.1  # Fiber length in m
-z_steps = 2**15
+z_steps = 2**14
 dz = z_tot / z_steps
 z = np.arange(0, z_steps) * dz  # z grid for simulation
 
 T_span = 200 * T0
-t_steps = 2**13
+t_steps = 2**12
 dt = T_span / t_steps
 t = np.arange(-t_steps / 2, t_steps / 2) * dt  # tau grid for simulations
 f = fftfreq(t_steps, dt)  # freq grid for simulation
 omega = 2 * np.pi * f
-omega_diff = omega - omega0
 
 # Fiber informaiton
 beta2 = -1.276e-26
@@ -50,7 +48,7 @@ beta_w = 1j * (
     + beta7 / factorial(7) * omega**7
 )  # relevent propagation constant order from is from 2
 gamma = 0.045  # nonlinear coeff from the fiber in W^-1/m
-fr = 0.18
+fr = 1
 
 A = datetime.now()
 sim = fiber_propagation(omega0, dz, z, dt, t, f, omega)

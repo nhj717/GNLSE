@@ -38,9 +38,7 @@ class fiber_propagation:
             self.spectrum[:, 0] = fft.fft(self.E[:, 0])
 
         if shape == "sech":
-            self.E[:, 0] = (
-                np.sqrt(P0) / np.cosh(self.t / T0) * np.exp(1j * self.omega0 * self.t)
-            )
+            self.E[:, 0] = np.sqrt(P0) / np.cosh(self.t / T0)
             self.spectrum[:, 0] = fft.fft(self.E[:, 0])
 
         if shape == "lorentzian":
@@ -66,7 +64,7 @@ class fiber_propagation:
             )
         elif type == "SSFM_symmetric":
             # scheme: split step fourier method in 2nd order.
-            self.E, self.spectrum = methods.SSFM_symmetric(
+            self.E, self.spectrum, self.R_t = methods.SSFM_symmetric(
                 alpha,
                 beta,
                 gamma,
@@ -81,7 +79,7 @@ class fiber_propagation:
             )
 
     def draw(self):
-        f = self.f
+        f = fft.fftshift(self.f) + self.omega0 / 2 / np.pi
         mask_pos = f > 0
         f = f[mask_pos]
         lamb = c / f
@@ -110,7 +108,8 @@ class fiber_propagation:
         I = I[::downsample_factor, ::downsample_factor]
         I_log = 10 * np.log10((I + eps) / np.max(I[:, 0] + eps))
         I_log = I_log.T
-        S = jacobian * abs(self.spectrum[mask_pos, :]) ** 2
+        spectrum = fft.fftshift(self.spectrum, axes=0)
+        S = jacobian * abs(spectrum[mask_pos, :]) ** 2
         S = S[::downsample_factor, ::downsample_factor]
         S_log = 10 * np.log10((S + eps) / np.max(S[:, 0] + eps))
         S_log = S_log.T
@@ -160,4 +159,7 @@ class fiber_propagation:
         ax4.legend()
         ax4.set_title("freq. domain")
 
+        plt.show(block=True)
+
+        plt.plot(self.t, self.R_t)
         plt.show(block=True)
