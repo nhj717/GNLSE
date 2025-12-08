@@ -11,10 +11,10 @@ import simulation_methods as methods
 class fiber_propagation:
     "set initial values"
 
-    def __init__(self, omega0, dz, z, dt, t, f, omega_diff):
+    def __init__(self, omega0, dz, z, dt, t, f, omega):
 
         self.omega0 = omega0  # pump angular frequency in rad Hz
-        self.omega_diff = omega_diff
+        self.omega = omega
         self.f = f
 
         self.dz = dz
@@ -23,7 +23,6 @@ class fiber_propagation:
         self.t = t
 
         self.hR_t = R_t(t)  # Raman response
-        self.fr = 0.18  # Raman coefficient
 
         self.E = np.zeros(
             (np.size(t), np.size(z)), dtype="complex128"
@@ -35,11 +34,7 @@ class fiber_propagation:
     def source(self, shape, P0, T0, C=0):
         self.T0 = T0
         if shape == "gaussian":
-            self.E[:, 0] = (
-                np.sqrt(P0)
-                * np.exp(-(1 + 1j * C) / 2 * (self.t / T0) ** 2)
-                * np.exp(1j * self.omega0 * self.t)
-            )
+            self.E[:, 0] = np.sqrt(P0) * np.exp(-(1 + 1j * C) / 2 * (self.t / T0) ** 2)
             self.spectrum[:, 0] = fft.fft(self.E[:, 0])
 
         if shape == "sech":
@@ -49,17 +44,10 @@ class fiber_propagation:
             self.spectrum[:, 0] = fft.fft(self.E[:, 0])
 
         if shape == "lorentzian":
-            self.E[:, 0] = (
-                np.sqrt(P0)
-                * T0
-                / 2
-                / np.pi
-                / (self.t**2 + (T0 / 2) ** 2)
-                * np.exp(1j * self.omega0 * self.t)
-            )
+            self.E[:, 0] = np.sqrt(P0) * T0 / 2 / np.pi / (self.t**2 + (T0 / 2) ** 2)
             self.spectrum[:, 0] = fft.fft(self.E[:, 0])
 
-    def propagate(self, type, alpha, beta, gamma):
+    def propagate(self, type, alpha, beta, gamma, fr):
 
         if type == "RK4IP":
             # scheme: Runge Kutta 4th order, Interaction Picture method from Hult
@@ -67,9 +55,9 @@ class fiber_propagation:
                 alpha,
                 beta,
                 gamma,
+                fr,
                 self.omega0,
-                self.omega_diff,
-                self.fr,
+                self.omega,
                 self.hR_t,
                 self.dz,
                 self.dt,
@@ -82,9 +70,9 @@ class fiber_propagation:
                 alpha,
                 beta,
                 gamma,
+                fr,
                 self.omega0,
-                self.omega_diff,
-                self.fr,
+                self.omega,
                 self.hR_t,
                 self.dz,
                 self.dt,

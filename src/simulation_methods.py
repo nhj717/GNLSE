@@ -7,9 +7,9 @@ def RK4IP(
     alpha,
     beta,
     gamma,
-    omega0,
-    omega_diff,
     fr,
+    omega0,
+    omega,
     hR_t,
     dz,
     dt,
@@ -24,17 +24,16 @@ def RK4IP(
 
         # 4 RK stages
         k1 = fft.ifft(
-            D_half
-            * fft.fft(dz * N_op(E[:, i], gamma, omega0, omega_diff, fr, hR_t, dt))
+            D_half * fft.fft(dz * N_op(E[:, i], gamma, omega0, omega, fr, hR_t, dt))
         )
 
-        k2 = dz * N_op(A_I + k1 / 2, gamma, omega0, omega_diff, fr, hR_t, dt)
-        k3 = dz * N_op(A_I + k2 / 2, gamma, omega0, omega_diff, fr, hR_t, dt)
+        k2 = dz * N_op(A_I + k1 / 2, gamma, omega0, omega, fr, hR_t, dt)
+        k3 = dz * N_op(A_I + k2 / 2, gamma, omega0, omega, fr, hR_t, dt)
         k4 = dz * N_op(
             fft.ifft(D_half * fft.fft(A_I + k3)),
             gamma,
             omega0,
-            omega_diff,
+            omega,
             fr,
             hR_t,
             dt,
@@ -53,9 +52,9 @@ def SSFM_symmetric(
     alpha,
     beta,
     gamma,
-    omega0,
-    omega_diff,
     fr,
+    omega0,
+    omega,
     hR_t,
     dz,
     dt,
@@ -65,15 +64,16 @@ def SSFM_symmetric(
     D_half = exp((beta - alpha / 2) * dz / 2)
     for i in range(size(E[0, :]) - 1):
         # Half-step Dispersion
-        A_I = fft.ifft(D_half * spectrum[:, i])
+        A_t_i = fft.ifft(D_half * spectrum[:, i])
 
         # Full-step Nonlienar
-        N1, N3 = N_op(A_I, gamma, omega0, omega_diff, fr, hR_t, dt)
-        N2 = fft.ifft(1j * omega_diff * fft.fft(A_I * N1)) / omega0
-        A_I = exp(N1 * dz) * A_I + N2 * dz
+        N_mult, N_add = N_op(A_t_i, gamma, omega0, omega, fr, hR_t, dt)
+        # N2 = fft.ifft(1j * omega_diff * fft.fft(A_I * N1)) / omega0
+        # N2 = -1j * gradient(N1 * A_I, dt) / omega0
+        A_t_i = exp(N_mult * dz) * A_t_i + N_add * dz
 
         # Last half-step Dispersion
-        spectrum[:, i + 1] = D_half * fft.fft(A_I)
+        spectrum[:, i + 1] = D_half * fft.fft(A_t_i)
         E[:, i + 1] = fft.ifft(spectrum[:, i + 1])
 
     return E, spectrum
