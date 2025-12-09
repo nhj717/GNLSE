@@ -71,7 +71,7 @@ def SSFM_symmetric(
         N_mult, N_add, R_t = N_op(A_t_i, gamma, omega0, omega, fr, hR_t, dt)
         # N2 = fft.ifft(1j * omega * fft.fft(A_I * N1)) / omega0
         # N2 = -1j * gradient(N1 * A_I, dt) / omega0
-        A_t_i = exp(N_mult * dz) * A_t_i + N_add * dz
+        A_t_i = exp(N_mult * dz) * A_t_i +N_add * dz
 
         # Last half-step Dispersion
         spectrum[:, i + 1] = D_half * fft.fft(A_t_i)

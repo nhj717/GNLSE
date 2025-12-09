@@ -38,6 +38,12 @@ beta4 = -1.321e-55
 beta5 = 3.032e-70
 beta6 = -4.196e-85
 beta7 = 2.57e-100
+# beta2 = 1.276e-26
+# beta3 = 0
+# beta4 = 0
+# beta5 = 0
+# beta6 = 0
+# beta7 = 0
 alpha = 0
 beta_w = 1j * (
     beta2 / factorial(2) * omega**2
@@ -48,7 +54,7 @@ beta_w = 1j * (
     + beta7 / factorial(7) * omega**7
 )  # relevent propagation constant order from is from 2
 gamma = 0.045  # nonlinear coeff from the fiber in W^-1/m
-fr = 1
+fr = 0.18
 
 A = datetime.now()
 sim = fiber_propagation(omega0, dz, z, dt, t, f, omega)

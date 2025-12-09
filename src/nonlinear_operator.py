@@ -12,22 +12,26 @@ def nonlinear_operator(A_t, gamma, omega0, omega, fr, hR_t, dt):
 
     # Raman convolution (zero-padding to avoid temporal aliasing)
     N = A_t.size
-    hR_t_aligned = fft.ifftshift(hR_t).copy()
+    M = fft.next_fast_len(2 * N)
+    HR_f = fft.fft(fft.ifftshift(hR_t), n=M)
+    I_f = fft.fft(fft.ifftshift(I_t), n=M)
 
-    M = 2 * N
-    HR_f = fft.fft(np.pad(hR_t, (0, M - N), mode="constant"))
-    I_f = fft.fft(np.pad(I_t, (0, M - N), mode="constant"))
-    conv_R_t = fft.ifft(HR_f * I_f)[:N] * dt
-    conv_R_t = np.real(conv_R_t)
+    # Convolution in frequency domain and back to time; scale by dt
+    conv_R_t = fft.ifft(HR_f * I_f) * dt
+
+    # Shift back to centered time origin and crop to original length
+    conv_R_t = fft.fftshift(conv_R_t)
+    start = (M - N) // 2
+    conv_R_t = np.real(conv_R_t[start:start + N])
 
     # Instantaneous + delayed term
     S = (1 - fr) * I_t + fr * conv_R_t
     SA_t = S * A_t
 
     # Self-steepening (shock term)
-    dSA_dt = fft.ifft(-1j * omega * fft.fft(SA_t))
+    dSA_dt = fft.ifft(1j * omega * fft.fft(SA_t))
 
-    N_mult = 1j * gamma * S
-    N_add = (gamma / omega0) * dSA_dt
+    N_mult = -1j * gamma * S
+    N_add = -(gamma / omega0) * dSA_dt
 
     return N_mult, N_add, conv_R_t
