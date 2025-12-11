@@ -149,8 +149,8 @@ def ODE_Dudley(
         (Z[0], Z[-1]),
         spectrum[:, 0],
         t_eval=Z,
-        atol=1e-10,
-        rtol=1e-4,
+        atol=atol,
+        rtol=rtol,
         method="RK45",
     )
 
@@ -160,6 +160,6 @@ def ODE_Dudley(
     for i in range(Nz):
         AW_tmp = sol.y[:, i] * np.exp(L * Z[i])
         E[:, i] = fft.fft(AW_tmp)
-        spectrum[:, i] = fft.fftshift(AW_tmp) / dt
+        spectrum[:, i] = fft.ifftshift(AW_tmp) / dt
 
-    return E, spectrum, 0
+    return E, spectrum

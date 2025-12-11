@@ -95,7 +95,7 @@ class fiber_propagation:
 
     def draw(self):
         print("Now plotting...")
-        f = fft.fftshift(self.f) + self.omega0 / 2 / np.pi
+        f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
         mask_pos = f > 0
         f = f[mask_pos]
         lamb = c / f
@@ -126,7 +126,6 @@ class fiber_propagation:
         I_log = I_log.T
         spectrum = self.spectrum
         S = jacobian * abs(spectrum[mask_pos, :]) ** 2
-        # S = abs(spectrum[mask_pos, :]) ** 2
         S = S[::downsample_factor, ::downsample_factor]
         S_log = 10 * np.log10((S + eps) / np.max(S + eps))
         S_log = S_log.T
