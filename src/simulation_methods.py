@@ -162,4 +162,4 @@ def ODE_Dudley(
         E[:, i] = fft.fft(AW_tmp)
         spectrum[:, i] = fft.ifftshift(AW_tmp) / dt
 
-    return E, spectrum
+    return E, spectrum, 0
