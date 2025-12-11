@@ -21,7 +21,7 @@ _HC_TABLE = np.array(
 )
 
 
-def hollenbeck_cantrell_hr(t, fr=0.18, normalize=True):
+def hollenbeck_cantrell_hr(t, fr=0.18):
     global _HC_TABLE
     """
     Build the Hollenbeck-Cantrell Raman response h_R(t) on a time grid t (seconds).
@@ -57,23 +57,16 @@ def hollenbeck_cantrell_hr(t, fr=0.18, normalize=True):
 
     # Build causal response: only t >= 0 contribute
     h = np.zeros_like(t, dtype=float)
-    pos_mask = t >= 0
-    tp = t[pos_mask]
+    pos_t = t >= 0
+    tp = t[pos_t]
 
     # Sum modes
     # term_n(t) = A_n * exp(-gamma_n t - (Gamma_n^2 t^2)/4 ) * sin(omega_n t)
     for An, wn, gn, Gn in zip(A, omega, gamma, Gamma):
-        h[pos_mask] += An * np.exp(-gn * tp - (Gn**2) * (tp**2) / 4.0) * np.sin(wn * tp)
+        h[pos_t] += An * np.exp(-gn * tp - (Gn**2) * (tp**2) / 4.0) * np.sin(wn * tp)
 
-    # Optionally normalize so the integral of h over t = 1 (makes h the delayed impulse)
-    # Note: the physical R(t) used in GNLSE is R(t) = (1 - fr) delta(t) + fr * h(t)
-    if normalize:
-        dt = t[1] - t[0] if t.size > 1 else 1.0
-        integral = np.trapezoid(h, t)
-        if integral != 0.0:
-            h = h / integral
-
-    # Scale with fr is normally applied externally when building R(t): R = (1-fr)*delta + fr*h
+    # Normalize area to 1
+    h /= np.trapezoid(h, t)
     return h
 
 

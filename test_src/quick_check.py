@@ -1,11 +1,23 @@
-import numpy as np
-import scipy.fft as fft
 import matplotlib.pyplot as plt
 
-omega0 = 2 * np.pi * 2
 
-a = [1,2,3,4,5]
-n = np.size(a)
-m = 2*n
-b = np.pad(a,(0,m-n),mode='constant')
-print(b)
+def set_size(w, h, ax=None):
+    """w, h: width, height in inches"""
+    if not ax:
+        ax = plt.gca()
+    l = ax.figure.subplotpars.left
+    r = ax.figure.subplotpars.right
+    t = ax.figure.subplotpars.top
+    b = ax.figure.subplotpars.bottom
+    figw = float(w) / (r - l)
+    figh = float(h) / (t - b)
+    ax.figure.set_size_inches(figw, figh)
+
+
+fig, ax = plt.subplots()
+
+ax.plot([1, 3, 2])
+
+set_size(5, 5)
+
+plt.show(block=True)

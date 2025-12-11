@@ -69,7 +69,7 @@ alpha_w = alpha_spl(omega)
 beta_w = 1j * (beta0_spl(omega) - beta0_spl(omega0) - beta1_spl(omega0) * omega_diff)
 n2 = 2.6e-20  # nonlinear index of glass at 920nm in m^2/W
 A_eff = Aeff[np.argmin(abs(omega_data - omega0))]  # Effective mode area in m2
-gamma = 2 * pi * n2 / lambda0 / A_eff
+gamma_without_Aeff = 2 * pi * n2 / lambda0
 # gamma = 0
 C = 0
 z_tot = 0.1  # Fiber length in m
@@ -78,7 +78,7 @@ z_tot = 0.1  # Fiber length in m
 A = datetime.now()
 sim = fiber_propagation(omega0, dz, z, dt, t, f, omega_diff)
 sim.source("sech", P0, T0, C)
-sim.propagate("RK4IP", alpha_w, beta_w, gamma)
+sim.propagate("RK4IP", alpha_w, beta_w, gamma_without_Aeff)
 
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
