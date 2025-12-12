@@ -22,40 +22,47 @@ def RK4IP(
     fr,
     omega0,
     omega,
-    hR_t,
+    R_t,
     dz,
     dt,
     E,
     spectrum,
 ):
-    D_half = np.exp((beta - alpha / 2) * dz / 2)
-    for i in range(np.size(E[0, :]) - 1):
-        # Half-step dispersion and loss
+    L, Aeff = L_op(alpha, beta, omega0, omega)
+    if Aeff is not None:
+        gamma = gamma / Aeff
+    D_half = np.exp(L * dz / 2)
+    Nz = len(E[0, :])
 
-        A_I = fft.ifft(D_half * spectrum[:, i])
+    progress_bar = tqdm.tqdm(total=Nz * dz * 1000, unit="mm")
+    for i in range(Nz - 1):
+        progress_bar.n = round(i * dz * 1000, 3)
+        progress_bar.update(0)
 
+        # Half-step Dispersion
+        A_I = fft.fft(D_half * spectrum[:, i])
         # 4 RK stages
-        k1 = fft.ifft(
-            D_half * fft.fft(dz * N_op(E[:, i], gamma, omega0, omega, fr, hR_t, dt))
+        k1 = fft.fft(
+            D_half * fft.ifft(dz * N_op(E[:, i], gamma, omega0, omega, fr, R_t, dt))
         )
 
-        k2 = dz * N_op(A_I + k1 / 2, gamma, omega0, omega, fr, hR_t, dt)
-        k3 = dz * N_op(A_I + k2 / 2, gamma, omega0, omega, fr, hR_t, dt)
+        k2 = dz * N_op(A_I + k1 / 2, gamma, omega0, omega, fr, R_t, dt)
+        k3 = dz * N_op(A_I + k2 / 2, gamma, omega0, omega, fr, R_t, dt)
         k4 = dz * N_op(
-            fft.ifft(D_half * fft.fft(A_I + k3)),
+            fft.fft(D_half * fft.ifft(A_I + k3)),
             gamma,
             omega0,
             omega,
             fr,
-            hR_t,
+            R_t,
             dt,
         )
 
         # save result
         E[:, i + 1] = (
-            fft.ifft(D_half * fft.fft(A_I + k1 / 6 + k2 / 3 + k3 / 3)) + k4 / 6
+            fft.fft(D_half * fft.ifft(A_I + k1 / 6 + k2 / 3 + k3 / 3)) + k4 / 6
         )
-        spectrum[:, i + 1] = fft.fft(E[:, i + 1])
+        spectrum[:, i + 1] = fft.ifft(E[:, i + 1])
 
     return E, spectrum
 
@@ -76,28 +83,25 @@ def SSFM_symmetric(
     L, Aeff = L_op(alpha, beta, omega0, omega)
     if Aeff is not None:
         gamma = gamma / Aeff
-    D_half = np.exp(L* dz / 2)
-    Nz = len(E[0,:])
+    D_half = np.exp(L * dz / 2)
+    Nz = len(E[0, :])
 
-    progress_bar = tqdm.tqdm(total=Nz*dz * 1000, unit="mm")
-    for i in range(Nz- 1):
-        progress_bar.n = round(i*dz * 1000, 3)
+    progress_bar = tqdm.tqdm(total=Nz * dz * 1000, unit="mm")
+    for i in range(Nz - 1):
+        progress_bar.n = round(i * dz * 1000, 3)
         progress_bar.update(0)
         # Half-step Dispersion
         A_t_i = fft.fft(D_half * spectrum[:, i])
 
         # Full-step Nonlienar
-        N_mult, N_add, R_t = N_op(A_t_i, gamma, omega0, omega, fr, R_t, dt)
-        A_t_i = np.exp(N_mult * dz) * A_t_i + 0*N_add * dz
+        N = N_op(A_t_i, gamma, omega0, omega, fr, R_t, dt)
+        A_t_i *= np.exp(N * dz)
 
         # Last half-step Dispersion
         spectrum[:, i + 1] = D_half * fft.ifft(A_t_i)
         E[:, i + 1] = fft.fft(spectrum[:, i + 1])
 
-        if i is 0:
-            R = R_t
-
-    return E, spectrum, R
+    return E, spectrum, 0
 
 
 def ODE_Dudley(
@@ -120,7 +124,7 @@ def ODE_Dudley(
     Nt = len(E[:, 0])
     Z = np.arange(0, Nz) * dz
 
-    #Nt is there to cancel the 1/N normalization of ifft, effectively making R_w equal to an unnormalized forward transform of R_t (modulo the shift).
+    # Nt is there to cancel the 1/N normalization of ifft, effectively making R_w equal to an unnormalized forward transform of R_t (modulo the shift).
     # It’s a workaround for using ifft to compute something that is, in spirit, a forward FFT
     R_w = Nt * fft.ifft(fft.fftshift(R_t))
     L, Aeff = L_op(alpha, beta, omega0, omega)
@@ -128,7 +132,7 @@ def ODE_Dudley(
         gamma = gamma / Aeff
     if abs(omega0) > eps:
         gamma /= omega0
-        W = omega+ omega0
+        W = omega + omega0
     else:
         W = 1
 
@@ -161,7 +165,7 @@ def ODE_Dudley(
     progress_bar.close()
 
     # Convert to time domain
-    spectrum = sol.y*np.exp(np.outer(L,Z))
-    E = fft.fft(spectrum,axis=0)
+    spectrum = sol.y * np.exp(np.outer(L, Z))
+    E = fft.fft(spectrum, axis=0)
 
     return E, spectrum, 0

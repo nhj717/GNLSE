@@ -16,8 +16,8 @@ def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt):
     I_t = np.abs(A_t) ** 2
 
     # Raman convolution (zero-padding to avoid temporal aliasing)
-    N = len(A_t)
-    R_w = fft.ifft(R_t)
+    N = len(omega)
+    R_w = N * fft.ifft(R_t)
     I_w = fft.ifft(I_t)
     # M = fft.next_fast_len(2 * N)
     # R_w = M*fft.ifft(fft.fftshift(R_t), n=M)
@@ -31,17 +31,19 @@ def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt):
     # start = (M - N) // 2
     # conv_R_t = np.real(conv_R_t[start : start + N])
 
-    # Instantaneous + delayed term
+    # # Instantaneous + delayed term
     S = (1 - fr) * I_t + fr * conv_R_t
     SA_t = S * A_t
 
     # Self-steepening (shock term)
-    dSA_dt = fft.fft(fft.ifftshift(omega+omega0)* fft.ifft(SA_t))
+    # dSA_dt = fft.fft(omega * fft.ifft(SA_t))
+    # dSA_dt = np.where(
+    #     abs(A_t) > 1e-15,
+    #     fft.fft(omega * fft.ifft(SA_t)) / (A_t + 1e-20),
+    #     0.0,
+    # )
 
-    N_mult = 1j * gamma * S
-    N_add = (1j*gamma / omega0) * dSA_dt
-
-    return N_mult, N_add, conv_R_t
+    return 1j * gamma * S
 
 
 def linear_operator(alpha, beta, omega0, omega):
