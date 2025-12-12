@@ -124,7 +124,7 @@ class fiber_propagation:
         I = I[::downsample_factor, ::downsample_factor]
         I_log = 10 * np.log10((I + eps) / np.max(I + eps))
         I_log = I_log.T
-        spectrum = self.spectrum
+        spectrum = fft.ifftshift(self.spectrum,axes=0)
         S = jacobian * abs(spectrum[mask_pos, :]) ** 2
         S = S[::downsample_factor, ::downsample_factor]
         S_log = 10 * np.log10((S + eps) / np.max(S + eps))
@@ -174,5 +174,5 @@ class fiber_propagation:
 
         plt.show(block=True)
 
-        # plt.plot(self.t, self.R_t)
-        # plt.show(block=True)
+        plt.plot(self.t, fft.fftshift(self.R_t))
+        plt.show(block=True)

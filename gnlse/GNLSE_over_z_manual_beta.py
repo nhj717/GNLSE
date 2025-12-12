@@ -43,7 +43,7 @@ beta = [
 gamma = 0.045  # nonlinear coeff from the fiber in W^-1/m
 fr = 0.18
 
-simulation_type = "ODE_Dudley"
+simulation_type = "SSFM_symmetric"
 
 ###        RUN SIMULATION    ###
 A = datetime.now()

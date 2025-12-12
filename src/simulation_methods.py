@@ -67,29 +67,34 @@ def SSFM_symmetric(
     fr,
     omega0,
     omega,
-    hR_t,
+    R_t,
     dz,
     dt,
     E,
     spectrum,
 ):
-    D_half = np.exp((beta - alpha / 2) * dz / 2)
+    L, Aeff = L_op(alpha, beta, omega0, omega)
+    if Aeff is not None:
+        gamma = gamma / Aeff
+    D_half = np.exp(L* dz / 2)
+    Nz = len(E[0,:])
 
-    for i in range(np.size(E[0, :]) - 1):
+    progress_bar = tqdm.tqdm(total=Nz*dz * 1000, unit="mm")
+    for i in range(Nz- 1):
+        progress_bar.n = round(i*dz * 1000, 3)
+        progress_bar.update(0)
         # Half-step Dispersion
         A_t_i = fft.fft(D_half * spectrum[:, i])
 
         # Full-step Nonlienar
-        N_mult, N_add, R_t = N_op(A_t_i, gamma, omega0, omega, fr, hR_t, dt)
-        # N2 = fft.ifft(1j * omega * fft.fft(A_I * N1)) / omega0
-        # N2 = -1j * gradient(N1 * A_I, dt) / omega0
-        A_t_i = np.exp(N_mult * dz) * A_t_i + 0 * N_add * dz
+        N_mult, N_add, R_t = N_op(A_t_i, gamma, omega0, omega, fr, R_t, dt)
+        A_t_i = np.exp(N_mult * dz) * A_t_i + 0*N_add * dz
 
         # Last half-step Dispersion
         spectrum[:, i + 1] = D_half * fft.ifft(A_t_i)
         E[:, i + 1] = fft.fft(spectrum[:, i + 1])
 
-        if i == 0:
+        if i is 0:
             R = R_t
 
     return E, spectrum, R
@@ -113,21 +118,20 @@ def ODE_Dudley(
     eps = np.finfo(float).eps
     Nz = len(E[0, :])
     Nt = len(E[:, 0])
-    omega_diff = fft.fftshift(omega)
     Z = np.arange(0, Nz) * dz
 
+    #Nt is there to cancel the 1/N normalization of ifft, effectively making R_w equal to an unnormalized forward transform of R_t (modulo the shift).
+    # It’s a workaround for using ifft to compute something that is, in spirit, a forward FFT
     R_w = Nt * fft.ifft(fft.fftshift(R_t))
-    L, Aeff = L_op(alpha, beta, omega0, omega_diff)
-    if Aeff != None:
+    L, Aeff = L_op(alpha, beta, omega0, omega)
+    if Aeff is not None:
         gamma = gamma / Aeff
     if abs(omega0) > eps:
         gamma /= omega0
-        W = omega_diff + omega0
-        W = fft.fftshift(W)
+        W = omega+ omega0
     else:
         W = 1
 
-    L = fft.fftshift(L)
     progress_bar = tqdm.tqdm(total=Z[-1] * 1000, unit="mm")
 
     def rhs(z, A_w):
@@ -157,9 +161,7 @@ def ODE_Dudley(
     progress_bar.close()
 
     # Convert to time domain
-    for i in range(Nz):
-        AW_tmp = sol.y[:, i] * np.exp(L * Z[i])
-        E[:, i] = fft.fft(AW_tmp)
-        spectrum[:, i] = fft.ifftshift(AW_tmp) / dt
+    spectrum = sol.y*np.exp(np.outer(L,Z))
+    E = fft.fft(spectrum,axis=0)
 
     return E, spectrum, 0
