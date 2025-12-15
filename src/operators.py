@@ -7,7 +7,7 @@ from scipy.interpolate import UnivariateSpline
 from functions import read_hdf5 as rdhd
 
 
-def nonlinear_operator_Hult(A_t, gamma, omega0, omega, fr, R_t, dt):
+def nonlinear_operator_divide_At(A_t, gamma, omega0, omega, fr, R_t, dt):
     """
     Full nonlinear term with self-steepening and Raman.
     FFT convolution is used for Raman term.
@@ -44,7 +44,7 @@ def nonlinear_operator_Hult(A_t, gamma, omega0, omega, fr, R_t, dt):
     return N_op
 
 
-def nonlinear_operator_Nic(A_t, gamma, omega0, omega, fr, R_t, dt):
+def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt):
     """
     Full nonlinear term with self-steepening and Raman.
     FFT convolution is used for Raman term.

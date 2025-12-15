@@ -2,17 +2,10 @@ from fontTools.misc.psLib import endofthingRE
 import numpy as np
 import scipy.fft as fft
 from scipy.integrate import solve_ivp
-from operators import nonlinear_operator_Hult as N_op_H
-from operators import nonlinear_operator_Nic as N_op
+from operators import nonlinear_operator_divide_At as N_op_divide
+from operators import nonlinear_operator as N_op
 from operators import linear_operator as L_op
 import tqdm
-
-# def report(z,y,flag):
-#     status = 0
-#     if isempty(flag):
-#         print(f'{z/}')
-#
-#     return status
 
 
 def RK4IP(
@@ -94,7 +87,7 @@ def SSFM_symmetric(
         A_t_i = fft.fft(D_half * spectrum[:, i])
 
         # Full-step Nonlienar
-        N = N_op_H(A_t_i, gamma, omega0, omega, fr, R_t, dt)
+        N = N_op_divide(A_t_i, gamma, omega0, omega, fr, R_t, dt)
         A_t_i *= np.exp(N * dz)
 
         # Last half-step Dispersion
