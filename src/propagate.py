@@ -2,9 +2,7 @@ import numpy as np
 from scipy.constants import c
 import scipy.fft as fft
 import matplotlib.pyplot as plt
-
 from raman_response import hollenbeck_cantrell_hr as R_t
-
 import simulation_methods as methods
 
 
@@ -74,7 +72,7 @@ class fiber_propagation:
             )
 
 
-    def draw(self):
+    def draw_z(self):
         print("Now plotting...")
         f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
         mask_pos = f > 0
@@ -157,3 +155,6 @@ class fiber_propagation:
         #
         # plt.plot(self.t, fft.fftshift(self.R_t))
         # plt.show(block=True)
+
+    def propagate_P(self):
+        return self.E

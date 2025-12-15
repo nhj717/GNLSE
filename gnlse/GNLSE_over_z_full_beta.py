@@ -1,4 +1,4 @@
-from propagate_z import fiber_propagation
+from propagate import fiber_propagation
 import numpy as np
 from scipy.fft import fftfreq
 from scipy.constants import c, pi
@@ -48,4 +48,4 @@ sim.propagate(simulation_type, alpha, waveguide_name, gamma, fr,self_steepening)
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
 
-sim.draw()
+sim.draw_z()

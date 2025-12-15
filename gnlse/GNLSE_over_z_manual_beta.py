@@ -1,4 +1,4 @@
-from propagate_z import fiber_propagation
+from propagate import fiber_propagation
 import numpy as np
 from scipy.fft import fftfreq
 from scipy.constants import c, pi
@@ -30,8 +30,8 @@ t = np.arange(-t_steps / 2, t_steps / 2) * dt  # tau grid for simulations
 f = fftfreq(t_steps, dt)  # freq grid for simulation
 omega = 2 * np.pi * f
 
-# Fiber informaiton
-alpha = 0  # loss of the fiber
+# Fiber information
+alpha = 0    # loss of the fiber
 beta = [
     -1.276e-26,
     8.119e-41,
@@ -42,15 +42,16 @@ beta = [
 ]  # propagation constants in the unit of s/m, s^2/m, ...
 gamma = 0.045  # nonlinear coeff from the fiber in W^-1/m
 fr = 0.18
+self_steepening = 1
 
 # simulation_type = "RK4IP"
-simulation_type = "SSFM_Vishal"
+simulation_type = "RK4IP"
 ###        RUN SIMULATION    ###
 A = datetime.now()
 sim = fiber_propagation(omega0, dz, z, dt, t, f, omega)
 sim.source(shape, P0, T0, C)
-sim.propagate(simulation_type, alpha, beta, gamma, fr)
+sim.propagate(simulation_type, alpha, beta, gamma, fr, self_steepening)
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
 
-sim.draw()
+sim.draw_z()

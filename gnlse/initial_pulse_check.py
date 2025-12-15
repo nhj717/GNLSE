@@ -1,4 +1,4 @@
-from propagate_z import fiber_propagation
+from propagate import fiber_propagation
 import numpy as np
 from scipy.fft import fftfreq, ifftshift
 from scipy.constants import c, pi
