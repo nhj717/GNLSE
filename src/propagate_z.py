@@ -45,53 +45,34 @@ class fiber_propagation:
             self.E[:, 0] = np.sqrt(P0) * T0 / 2 / np.pi / (self.t**2 + (T0 / 2) ** 2)
             self.spectrum[:, 0] = fft.ifft(self.E[:, 0])
 
-    def propagate(self, type, alpha, beta, gamma, fr):
+    def propagate(self, type, alpha, beta, gamma, fr,self_steepening):
         self.sim_type = type
         if type == "RK4IP":
+            fun = methods.RK4IP
             # scheme: Runge Kutta 4th order, Interaction Picture method from Hult
-            self.E, self.spectrum = methods.RK4IP(
-                alpha,
-                beta,
-                gamma,
-                fr,
-                self.omega0,
-                self.omega,
-                self.hR_t,
-                self.dz,
-                self.dt,
-                self.E,
-                self.spectrum,
-            )
-        elif type == "SSFM_symmetric":
+        elif type == "SSFM_Agrawal":
             # scheme: split step fourier method in 2nd order.
-            self.E, self.spectrum, self.R_t = methods.SSFM_symmetric(
-                alpha,
-                beta,
-                gamma,
-                fr,
-                self.omega0,
-                self.omega,
-                self.hR_t,
-                self.dz,
-                self.dt,
-                self.E,
-                self.spectrum,
+            fun = methods.SSFM_Agrawal
+        elif type == "SSFM_Vishal":
+            # scheme: split step fourier method in 2nd order.
+            fun= methods.SSFM_Vishal
+        elif type == "ODE_Dudley":
+            fun= methods.ODE_Dudley
+
+        self.E, self.spectrum = fun(
+            alpha,
+            beta,
+            gamma,
+            fr, self_steepening,
+            self.omega0,
+            self.omega,
+            self.hR_t,
+            self.dz,
+            self.dt,
+            self.E,
+            self.spectrum,
             )
 
-        elif type == "ODE_Dudley":
-            self.E, self.spectrum, self.R_t = methods.ODE_Dudley(
-                alpha,
-                beta,
-                gamma,
-                fr,
-                self.omega0,
-                self.omega,
-                self.hR_t,
-                self.dz,
-                self.dt,
-                self.E,
-                self.spectrum,
-            )
 
     def draw(self):
         print("Now plotting...")

@@ -7,7 +7,7 @@ from scipy.interpolate import UnivariateSpline
 from functions import read_hdf5 as rdhd
 
 
-def nonlinear_operator_divide_At(A_t, gamma, omega0, omega, fr, R_t, dt):
+def nonlinear_operator_divide_At(A_t, gamma, omega0, omega, fr, R_t, dt,self_steepening):
     """
     Full nonlinear term with self-steepening and Raman.
     FFT convolution is used for Raman term.
@@ -35,16 +35,42 @@ def nonlinear_operator_divide_At(A_t, gamma, omega0, omega, fr, R_t, dt):
         1j
         * gamma
         * np.where(
-            abs(A_t) > 1e-20,
-            fft.fft((1 + omega / omega0) * fft.ifft(SA_t)) / (A_t + 1e-30),
+            abs(A_t) > 1e-15,
+            fft.fft((1 + omega / omega0) * fft.ifft(SA_t)) / (A_t + 1e-20),
             0.0,
         )
     )
 
     return N_op
 
+def nonlinear_operator_seperated(A_t, gamma, omega0, omega, fr, R_t, dt,self_steepening):
+    """
+    Full nonlinear term with self-steepening and Raman.
+    FFT convolution is used for Raman term.
+    """
+    # Instantaneous intensity
+    I_t = np.abs(A_t) ** 2
 
-def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt):
+    # Raman convolution (zero-padding to avoid temporal aliasing)
+    N = len(omega)
+    M = fft.next_fast_len(2 * N)
+    R_w = M * fft.ifft(R_t, n=M)
+    I_w = fft.ifft(I_t, n=M)
+
+    # Convolution in frequency domain and back to time; scale by dt
+    conv_R_t = fft.fft(R_w * I_w) * dt
+
+    # Shift back to centered time origin and crop to original length
+    start = (M - N) // 2
+    conv_R_t = conv_R_t[start : start + N]
+
+    # # Instantaneous + delayed term
+    S = (1 - fr) * I_t + fr * conv_R_t
+    SA_t = fft.fft(omega / omega0 *fft.ifft(S * A_t))
+
+    return 1j*gamma*S,1j*gamma*SA_t
+
+def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt,self_steepening):
     """
     Full nonlinear term with self-steepening and Raman.
     FFT convolution is used for Raman term.
@@ -101,8 +127,10 @@ def linear_operator(alpha, beta, omega0, omega):
         beta0_spl = UnivariateSpline(omega_data, beta0, k=5)
         beta1_spl = UnivariateSpline(omega_data, beta1, k=5)
         Aeff_spl = UnivariateSpline(omega_data, Aeff, k=5)
-
-        alpha_w = alpha_spl(omega)
+        if alpha is None:
+            alpha_w = 0
+        else:
+            alpha_w = alpha_spl(omega)
         beta_w = beta0_spl(omega) - beta0_spl(omega0) - beta1_spl(omega0) * omega
         Aeff_w0 = Aeff_spl(omega0)
 

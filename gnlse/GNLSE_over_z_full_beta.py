@@ -1,85 +1,50 @@
 from propagate_z import fiber_propagation
-from functions import read_hdf5 as rdhd
 import numpy as np
-from scipy.interpolate import UnivariateSpline
-from scipy.constants import c, pi
 from scipy.fft import fftfreq
+from scipy.constants import c, pi
 from datetime import datetime
-import os
 
 # Initial Pulse information
 shape = "gaussian"
-lambda0_um = 0.920  # pump wavelength in um
+lambda0_um = 0.850  # pump wavelength in um
 lambda0 = lambda0_um * 1e-6
 omega0 = 2 * pi * c / lambda0
-T_FWHM = 140e-15
+T_FWHM = 150e-15
 if shape == "gaussian":
     T0 = T_FWHM / (2 * np.sqrt(np.log(2)))
 elif shape == "sech":
     T0 = T_FWHM / (2 * np.log(1 + np.sqrt(2)))  # pulse duration in seconds
-
-###From Average Power###
-# Pavg = 0.4  # Watts
-# R_R = 80e6
-# P0 = Pavg / (T0 * R_R)
-Pavg = 0.5  # Watts
-R_R = 80e6
-P0 = Pavg / (T0 * R_R)
-# P0 = 15e3
-
+P0 = 1e4  # peak power in W
 C = 0  # chirp
 
 # Grid information
-z_tot = 0.1  # Fiber length in m
+z_tot = 0.01  # Fiber length in m
 z_steps = 2**10
 dz = z_tot / z_steps
 z = np.arange(0, z_steps) * dz  # z grid for simulation
 
-T_span = 50 * T0
-t_steps = 2**13
+T_span = 200 * T0
+t_steps = 2**12
 dt = T_span / t_steps
 t = np.arange(-t_steps / 2, t_steps / 2) * dt  # tau grid for simulations
-f = fftfreq(t_steps, T_span / t_steps)  # freq grid for simulation
+f = fftfreq(t_steps, dt)  # freq grid for simulation
 omega = 2 * np.pi * f
-omega_diff = omega - omega0
 
 # Fiber informaiton
-folder_path = os.getcwd()
-location = os.path.join(folder_path, "dispersion_data", "waveguide.h5")
-waveguidename = "20240422_3B_ideal"
-data_label, data = rdhd(location, waveguidename)
-print(data_label)
+alpha = None  # loss of the fiber
+waveguide_name = "20230330_4_ideal"   #name of the waveguide
+n2 = 2.7e-20  # nonlinear index in m^2/W
+gamma = 2 * pi * n2 / lambda0
+fr = 0.18
+self_steepening = 1
 
-
-# Fiber informaiton
-omega_data = data[data_label.index("omega")]
-beta1 = data[data_label.index("beta1")]
-beta2 = data[data_label.index("beta2")]
-neff = data[data_label.index("n_eff")]
-Aeff = data[data_label.index("A_eff")]
-n = np.real(neff)
-k = -np.imag(neff)
-alpha = 2 * omega_data * k / c
-beta0 = n * omega_data / c
-alpha_spl = UnivariateSpline(omega_data, alpha, k=5)
-beta0_spl = UnivariateSpline(omega_data, beta0, k=5)
-beta1_spl = UnivariateSpline(omega_data, beta1, k=5)
-
-alpha_w = alpha_spl(omega)
-beta_w = 1j * (beta0_spl(omega) - beta0_spl(omega0) - beta1_spl(omega0) * omega_diff)
-n2 = 2.6e-20  # nonlinear index of glass at 920nm in m^2/W
-A_eff = Aeff[np.argmin(abs(omega_data - omega0))]  # Effective mode area in m2
-gamma_without_Aeff = 2 * pi * n2 / lambda0
-# gamma = 0
-C = 0
-z_tot = 0.1  # Fiber length in m
-
-
+# simulation_type = "RK4IP"
+simulation_type = "RK4IP"
+###        RUN SIMULATION    ###
 A = datetime.now()
-sim = fiber_propagation(omega0, dz, z, dt, t, f, omega_diff)
-sim.source("sech", P0, T0, C)
-sim.propagate("RK4IP", alpha_w, beta_w, gamma_without_Aeff)
-
+sim = fiber_propagation(omega0, dz, z, dt, t, f, omega)
+sim.source(shape, P0, T0, C)
+sim.propagate(simulation_type, alpha, waveguide_name, gamma, fr,self_steepening)
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
 

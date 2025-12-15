@@ -3,6 +3,7 @@ import numpy as np
 import scipy.fft as fft
 from scipy.integrate import solve_ivp
 from operators import nonlinear_operator_divide_At as N_op_divide
+from operators import nonlinear_operator_seperated as N_op_seperated
 from operators import nonlinear_operator as N_op
 from operators import linear_operator as L_op
 import tqdm
@@ -12,7 +13,7 @@ def RK4IP(
     alpha,
     beta,
     gamma,
-    fr,
+    fr,self_steepening,
     omega0,
     omega,
     R_t,
@@ -36,11 +37,11 @@ def RK4IP(
         A_I = fft.fft(D_half * spectrum[:, i])
         # 4 RK stages
         k1 = fft.fft(
-            D_half * fft.ifft(dz * N_op(E[:, i], gamma, omega0, omega, fr, R_t, dt))
+            D_half * fft.ifft(dz * N_op(E[:, i], gamma, omega0, omega, fr, R_t, dt,self_steepening))
         )
 
-        k2 = dz * N_op(A_I + k1 / 2, gamma, omega0, omega, fr, R_t, dt)
-        k3 = dz * N_op(A_I + k2 / 2, gamma, omega0, omega, fr, R_t, dt)
+        k2 = dz * N_op(A_I + k1 / 2, gamma, omega0, omega, fr, R_t, dt,self_steepening)
+        k3 = dz * N_op(A_I + k2 / 2, gamma, omega0, omega, fr, R_t, dt,self_steepening)
         k4 = dz * N_op(
             fft.fft(D_half * fft.ifft(A_I + k3)),
             gamma,
@@ -48,7 +49,7 @@ def RK4IP(
             omega,
             fr,
             R_t,
-            dt,
+            dt,self_steepening
         )
 
         # save result
@@ -60,11 +61,11 @@ def RK4IP(
     return E, spectrum
 
 
-def SSFM_symmetric(
+def SSFM_Agrawal(
     alpha,
     beta,
     gamma,
-    fr,
+    fr,self_steepening,
     omega0,
     omega,
     R_t,
@@ -87,21 +88,59 @@ def SSFM_symmetric(
         A_t_i = fft.fft(D_half * spectrum[:, i])
 
         # Full-step Nonlienar
-        N = N_op_divide(A_t_i, gamma, omega0, omega, fr, R_t, dt)
+        N = N_op_divide(A_t_i, gamma, omega0, omega, fr, R_t, dt,self_steepening)
         A_t_i *= np.exp(N * dz)
 
         # Last half-step Dispersion
         spectrum[:, i + 1] = D_half * fft.ifft(A_t_i)
         E[:, i + 1] = fft.fft(spectrum[:, i + 1])
 
-    return E, spectrum, 0
+    return E, spectrum
+
+
+def SSFM_Vishal(
+    alpha,
+    beta,
+    gamma,
+    fr,self_steepening,
+    omega0,
+    omega,
+    R_t,
+    dz,
+    dt,
+    E,
+    spectrum,
+):
+    L, Aeff = L_op(alpha, beta, omega0, omega)
+    if Aeff is not None:
+        gamma = gamma / Aeff
+    D_half = np.exp(L * dz / 2)
+    Nz = len(E[0, :])
+
+    progress_bar = tqdm.tqdm(total=Nz * dz * 1000, unit="mm")
+    for i in range(Nz - 1):
+        progress_bar.n = round(i * dz * 1000, 3)
+        progress_bar.update(0)
+        # Half-step Dispersion
+        A_t_i = fft.fft(D_half * spectrum[:, i])
+
+        # Full-step Nonlienar
+        N_mult,N_add = N_op_seperated(A_t_i, gamma, omega0, omega, fr, R_t, dt,self_steepening)
+        A_t_i *= np.exp(N_mult * dz)
+        A_t_i+=N_add*dz
+
+        # Last half-step Dispersion
+        spectrum[:, i + 1] = D_half * fft.ifft(A_t_i)
+        E[:, i + 1] = fft.fft(spectrum[:, i + 1])
+
+    return E, spectrum
 
 
 def ODE_Dudley(
     alpha,
     beta,
     gamma,
-    fr,
+    fr,self_steepening,
     omega0,
     omega,
     R_t,
@@ -165,4 +204,4 @@ def ODE_Dudley(
     spectrum = sol.y * np.exp(np.outer(L, Z))
     E = fft.fft(spectrum, axis=0)
 
-    return E, spectrum, 0
+    return E, spectrum
