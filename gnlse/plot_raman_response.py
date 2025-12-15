@@ -14,7 +14,7 @@ delt = Tspan / t_steps
 t = np.arange(-t_steps / 2, t_steps / 2) * delt  # tau grid for simulations
 hR_t = R_t(t)  # Raman response
 
-plt.plot(t, hR_t)
+plt.plot(t, fft.fftshift(hR_t))
 plt.show(block=True)
 
 f = fft.fftshift(fft.fftfreq(t_steps, delt))

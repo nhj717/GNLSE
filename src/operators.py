@@ -7,7 +7,7 @@ from scipy.interpolate import UnivariateSpline
 from functions import read_hdf5 as rdhd
 
 
-def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt):
+def nonlinear_operator_Hult(A_t, gamma, omega0, omega, fr, R_t, dt):
     """
     Full nonlinear term with self-steepening and Raman.
     FFT convolution is used for Raman term.
@@ -17,33 +17,60 @@ def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt):
 
     # Raman convolution (zero-padding to avoid temporal aliasing)
     N = len(omega)
-    R_w = N * fft.ifft(R_t)
-    I_w = fft.ifft(I_t)
-    # M = fft.next_fast_len(2 * N)
-    # R_w = M*fft.ifft(fft.fftshift(R_t), n=M)
-    # I_w = M*fft.ifft(fft.fftshift(I_t), n=M)
+    M = fft.next_fast_len(2 * N)
+    R_w = M * fft.ifft(R_t, n=M)
+    I_w = fft.ifft(I_t, n=M)
 
     # Convolution in frequency domain and back to time; scale by dt
     conv_R_t = fft.fft(R_w * I_w) * dt
 
     # Shift back to centered time origin and crop to original length
-    # conv_R_t = fft.fftshift(conv_R_t)
-    # start = (M - N) // 2
-    # conv_R_t = np.real(conv_R_t[start : start + N])
+    start = (M - N) // 2
+    conv_R_t = conv_R_t[start : start + N]
 
     # # Instantaneous + delayed term
     S = (1 - fr) * I_t + fr * conv_R_t
     SA_t = S * A_t
+    N_op = (
+        1j
+        * gamma
+        * np.where(
+            abs(A_t) > 1e-20,
+            fft.fft((1 + omega / omega0) * fft.ifft(SA_t)) / (A_t + 1e-30),
+            0.0,
+        )
+    )
 
-    # Self-steepening (shock term)
-    # dSA_dt = fft.fft(omega * fft.ifft(SA_t))
-    # dSA_dt = np.where(
-    #     abs(A_t) > 1e-15,
-    #     fft.fft(omega * fft.ifft(SA_t)) / (A_t + 1e-20),
-    #     0.0,
-    # )
+    return N_op
 
-    return 1j * gamma * S
+
+def nonlinear_operator_Nic(A_t, gamma, omega0, omega, fr, R_t, dt):
+    """
+    Full nonlinear term with self-steepening and Raman.
+    FFT convolution is used for Raman term.
+    """
+    # Instantaneous intensity
+    I_t = np.abs(A_t) ** 2
+
+    # Raman convolution (zero-padding to avoid temporal aliasing)
+    N = len(omega)
+    M = fft.next_fast_len(2 * N)
+    R_w = M * fft.ifft(R_t, n=M)
+    I_w = fft.ifft(I_t, n=M)
+
+    # Convolution in frequency domain and back to time; scale by dt
+    conv_R_t = fft.fft(R_w * I_w) * dt
+
+    # Shift back to centered time origin and crop to original length
+    start = (M - N) // 2
+    conv_R_t = conv_R_t[start : start + N]
+
+    # # Instantaneous + delayed term
+    S = (1 - fr) * I_t + fr * conv_R_t
+    SA_t = S * A_t
+    N_op = 1j * gamma * fft.fft((1 + omega / omega0) * fft.ifft(SA_t))
+
+    return N_op
 
 
 def linear_operator(alpha, beta, omega0, omega):

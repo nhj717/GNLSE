@@ -3,7 +3,8 @@ import numpy as np
 import scipy.fft as fft
 from scipy.constants import epsilon_0
 from scipy.integrate import solve_ivp
-from operators import nonlinear_operator as N_op
+from operators import nonlinear_operator_Hult as N_op_H
+from operators import nonlinear_operator_Nic as N_op
 from operators import linear_operator as L_op
 import tqdm
 
@@ -94,7 +95,7 @@ def SSFM_symmetric(
         A_t_i = fft.fft(D_half * spectrum[:, i])
 
         # Full-step Nonlienar
-        N = N_op(A_t_i, gamma, omega0, omega, fr, R_t, dt)
+        N = N_op_H(A_t_i, gamma, omega0, omega, fr, R_t, dt)
         A_t_i *= np.exp(N * dz)
 
         # Last half-step Dispersion
@@ -124,9 +125,12 @@ def ODE_Dudley(
     Nt = len(E[:, 0])
     Z = np.arange(0, Nz) * dz
 
+    # Raman convolution (zero-padding to avoid temporal aliasing)
     # Nt is there to cancel the 1/N normalization of ifft, effectively making R_w equal to an unnormalized forward transform of R_t (modulo the shift).
-    # It’s a workaround for using ifft to compute something that is, in spirit, a forward FFT
-    R_w = Nt * fft.ifft(fft.fftshift(R_t))
+    M = fft.next_fast_len(2 * Nt)
+    start = (M - Nt) // 2
+    R_w = M * fft.ifft(R_t, n=M)
+
     L, Aeff = L_op(alpha, beta, omega0, omega)
     if Aeff is not None:
         gamma = gamma / Aeff
@@ -144,12 +148,13 @@ def ODE_Dudley(
         A_t_local = fft.fft(A_w * np.exp(L * z))
         I_t = abs(A_t_local) ** 2
         if len(R_t) == 1 or abs(fr) < eps:
-            M = fft.ifft(A_t_local * I_t)
+            SA_t = fft.ifft(A_t_local * I_t)
         else:
-            RS = dt * fr * fft.fft(fft.ifft(I_t) * R_w)
-            M = fft.ifft(A_t_local * ((1 - fr) * I_t + RS))
+            conv_R_t = dt * fft.fft(fft.ifft(I_t, n=M) * R_w)
+            conv_R_t = np.real(conv_R_t[start : start + Nt])
+            SA_t = fft.ifft(A_t_local * ((1 - fr) * I_t + fr * conv_R_t))
 
-        R = 1j * gamma * W * M * np.exp(-L * z)
+        R = 1j * gamma * W * SA_t * np.exp(-L * z)
         return R
 
     sol = solve_ivp(
