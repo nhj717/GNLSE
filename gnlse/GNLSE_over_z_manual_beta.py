@@ -1,4 +1,4 @@
-from RK4IP_z import fiber_propagation
+from propagate_z import fiber_propagation
 import numpy as np
 from scipy.fft import fftfreq
 from scipy.constants import c, pi

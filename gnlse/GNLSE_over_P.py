@@ -1,4 +1,4 @@
-from RK4IP_P import fiber_propagation
+from propagate_P import fiber_propagation
 from functions import read_hdf5 as rdhd
 from numpy import flip, imag, real, sqrt, log, arange
 from scipy.interpolate import UnivariateSpline
