@@ -1,7 +1,6 @@
 from fontTools.misc.psLib import endofthingRE
 import numpy as np
 import scipy.fft as fft
-from scipy.constants import epsilon_0
 from scipy.integrate import solve_ivp
 from operators import nonlinear_operator_Hult as N_op_H
 from operators import nonlinear_operator_Nic as N_op
