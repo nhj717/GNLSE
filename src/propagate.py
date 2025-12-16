@@ -223,12 +223,12 @@ class fiber_propagation:
         pp_lamb = pp_lamb[:, ::downsample_factor]
         I = abs(self.E_P) ** 2
         I = I[::downsample_factor, :]
-        I_log = 10 * np.log10((I + eps) / np.max(I + eps))
+        I_log = 10 * np.log10((I + eps) / np.amax(I + eps,axis = 0)[None,:])
         I_log = I_log.T
         spectrum = fft.ifftshift(self.spectrum_P, axes=0)
         S = jacobian * abs(spectrum[mask_pos, :]) ** 2
         S = S[::downsample_factor, :]
-        S_log = 10 * np.log10((S + eps) / np.max(S + eps))
+        S_log = 10 * np.log10((S + eps) / np.amax(S + eps,axis = 0)[None,:])
         S_log = S_log.T
 
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(
@@ -238,7 +238,7 @@ class fiber_propagation:
 
         pcm1 = ax1.pcolormesh(
             tt * 1e12,
-            pp * 1e3,
+            pp,
             I_log,
             cmap="jet",
             vmin=-40,
@@ -247,12 +247,12 @@ class fiber_propagation:
         )
         # ax1.set_aspect(30)
         ax1.set_title("Time domain")
-        ax1.set_ylabel("Pump Power [mW]")
+        ax1.set_ylabel("Pump Power [W]")
         ax1.set_xlim(-20 * self.T0 * 1e12, t[-1] * 1e12)
         cb1 = plt.colorbar(pcm1, shrink=1, location="bottom")
 
         pcm2 = ax2.pcolormesh(
-            ll, pp_lamb * 1e3, S_log, cmap="jet", vmin=-40, vmax=0, shading="gouraud"
+            ll, pp_lamb , S_log, cmap="jet", vmin=-40, vmax=0, shading="gouraud"
         )
         # ax2.set_aspect(15)
         ax2.set_title("Freq. domain")

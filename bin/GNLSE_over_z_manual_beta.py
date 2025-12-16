@@ -14,7 +14,7 @@ if pulse_shape == "gaussian":
     T0 = T_FWHM / (2 * np.sqrt(np.log(2)))
 elif pulse_shape == "sech":
     T0 = T_FWHM / (2 * np.log(1 + np.sqrt(2)))  # pulse duration in seconds
-P0 = 1e3  # peak power in W
+P0 = 10e3  # peak power in W
 C = 0  # chirp
 
 # Grid information

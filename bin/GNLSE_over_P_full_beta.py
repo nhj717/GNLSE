@@ -18,19 +18,19 @@ C = 0  # chirp
 
 # Grid information
 z_tot = 0.095  # Fiber length in m
-z_steps = 2**10
+z_steps = 2**11
 dz = z_tot / z_steps
 z = np.arange(0, z_steps) * dz  # z grid for simulation
 
-T_span = 500 * T0
-t_steps = 2**13
+T_span = 50 * T0
+t_steps = 2**12
 dt = T_span / t_steps
 t = np.arange(-t_steps / 2, t_steps / 2) * dt  # tau grid for simulations
 f = fftfreq(t_steps, dt)  # freq grid for simulation
 omega = 2 * np.pi * f
 
-Np = 2**5
-Pavg = 0.5  # Watts
+Np = 2**7
+Pavg = 1.2  # Watts
 R_R = 80e6
 P_max = Pavg / (T0 * R_R)
 # P_max = 1e3
@@ -43,8 +43,8 @@ alpha = None  # loss of the fiber; type None to turn off alpha
 waveguide_name = "20240422_3B_ideal"  # name of the waveguide
 n2 = 2.6e-20  # nonlinear index in m^2/W
 gamma = 2 * pi * n2 / lambda0
-fr = 0.0
-self_steepening = False  # True or False to include self steepening
+fr = 0.18
+self_steepening = True  # True or False to include self steepening
 
 simulation_type = "SSFM_Vishal"
 ###        RUN SIMULATION    ###
