@@ -7,7 +7,9 @@ from scipy.interpolate import UnivariateSpline
 from functions import read_hdf5 as rdhd
 
 
-def nonlinear_operator_divide_At(A_t, gamma, omega0, omega, fr, R_t, dt,self_steepening):
+def nonlinear_operator_divide_At(
+    A_t, gamma, omega0, omega, fr, R_t, dt, self_steepening
+):
     """
     Full nonlinear term with self-steepening and Raman.
     FFT convolution is used for Raman term.
@@ -43,7 +45,10 @@ def nonlinear_operator_divide_At(A_t, gamma, omega0, omega, fr, R_t, dt,self_ste
 
     return N_op
 
-def nonlinear_operator_seperated(A_t, gamma, omega0, omega, fr, R_t, dt,self_steepening):
+
+def nonlinear_operator_seperated(
+    A_t, gamma, omega0, omega, fr, R_t, dt, self_steepening
+):
     """
     Full nonlinear term with self-steepening and Raman.
     FFT convolution is used for Raman term.
@@ -66,11 +71,12 @@ def nonlinear_operator_seperated(A_t, gamma, omega0, omega, fr, R_t, dt,self_ste
 
     # # Instantaneous + delayed term
     S = (1 - fr) * I_t + fr * conv_R_t
-    SA_t = fft.fft(omega / omega0 *fft.ifft(S * A_t))
+    SA_t = fft.fft(omega / omega0 * fft.ifft(S * A_t))
 
-    return 1j*gamma*S,1j*gamma*SA_t
+    return 1j * gamma * S, 1j * gamma * SA_t
 
-def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt,self_steepening):
+
+def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt, self_steepening):
     """
     Full nonlinear term with self-steepening and Raman.
     FFT convolution is used for Raman term.

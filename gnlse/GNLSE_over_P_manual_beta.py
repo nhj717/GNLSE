@@ -1,18 +1,18 @@
-from propagate_P import fiber_propagation
+from propagate import fiber_propagation
 import numpy as np
 from scipy.fft import fftfreq
 from scipy.constants import c, pi
 from datetime import datetime
 
 # Initial Pulse information
-shape = "sech"
+pulse_shape = "gaussian"
 lambda0_um = 0.850  # pump wavelength in um
 lambda0 = lambda0_um * 1e-6
 omega0 = 2 * pi * c / lambda0
 T_FWHM = 50e-15
-if shape == "gaussian":
+if pulse_shape == "gaussian":
     T0 = T_FWHM / (2 * np.sqrt(np.log(2)))
-elif shape == "sech":
+elif pulse_shape == "sech":
     T0 = T_FWHM / (2 * np.log(1 + np.sqrt(2)))  # pulse duration in seconds
 P0 = 10e3  # peak power in W
 C = 0  # chirp
@@ -40,7 +40,7 @@ P = np.arange(1, Np + 1) * delP
 
 
 # Fiber information
-alpha = 0    # loss of the fiber
+alpha = 0  # loss of the fiber
 beta = [
     -1.276e-26,
     8.119e-41,
@@ -51,15 +51,13 @@ beta = [
 ]  # propagation constants in the unit of s/m, s^2/m, ...
 gamma = 0.045  # nonlinear coeff from the fiber in W^-1/m
 fr = 0.18
-self_steepening = 1
+self_steepening = True
 
-simulation_type = "RK4IP"
+simulation_type = "SSFM_Vishal"
 ###        RUN SIMULATION    ###
 A = datetime.now()
-sim = fiber_propagation(omega0, dz, z, dt, t, f, omega)
-sim.source(shape, P0, T0, C)
-sim.propagate(simulation_type, alpha, beta, gamma, fr, self_steepening)
+sim = fiber_propagation(omega0, dz, z, dt, t, f, omega, pulse_shape, P0, T0, C)
+sim.propagate_P(simulation_type, alpha, beta, gamma, fr, self_steepening, P)
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
-
-sim.draw()
+sim.draw_P()
