@@ -71,7 +71,10 @@ def nonlinear_operator_seperated(
 
     # # Instantaneous + delayed term
     S = (1 - fr) * I_t + fr * conv_R_t
-    SA_t = fft.fft(omega / omega0 * fft.ifft(S * A_t))
+    if self_steepening is False:
+        SA_t = 0
+    else:
+        SA_t = fft.fft(omega / omega0 * fft.ifft(S * A_t))
 
     return 1j * gamma * S, 1j * gamma * SA_t
 
@@ -105,10 +108,10 @@ def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt, self_steepening):
     return N_op
 
 
-def linear_operator(alpha, beta, omega0, omega):
+def linear_operator(alpha0, beta, omega0, omega):
     if isinstance(beta, list):
         Aeff_w0 = None
-        alpha_w = alpha
+        alpha_w = alpha0
         beta_w = 0
         for i in range(len(beta)):
             beta_w += beta[i] / factorial(i + 2) * omega ** (i + 2)
@@ -117,8 +120,7 @@ def linear_operator(alpha, beta, omega0, omega):
         # Fiber informaiton
         folder_path = os.getcwd()
         location = os.path.join(folder_path, "dispersion_data", "waveguide.h5")
-        data_label, data = rdhd(location, beta)
-        print(data_label)
+        data_label, data = rdhd(location, beta, read=False)
 
         # Fiber informaiton
         omega_data = data[data_label.index("omega")]
@@ -133,12 +135,13 @@ def linear_operator(alpha, beta, omega0, omega):
         beta0_spl = UnivariateSpline(omega_data, beta0, k=5)
         beta1_spl = UnivariateSpline(omega_data, beta1, k=5)
         Aeff_spl = UnivariateSpline(omega_data, Aeff, k=5)
-        if alpha is None:
+        if alpha0 is None:
             alpha_w = 0
         else:
             alpha_w = alpha_spl(omega)
         beta_w = beta0_spl(omega) - beta0_spl(omega0) - beta1_spl(omega0) * omega
         Aeff_w0 = Aeff_spl(omega0)
+        Aeff_w0 = 9.2e-12
 
     L = 1j * beta_w - alpha_w / 2
 

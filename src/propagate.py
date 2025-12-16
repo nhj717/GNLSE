@@ -85,7 +85,7 @@ class fiber_propagation:
             update,
         )
 
-    def draw_z(self):
+    def draw_z(self, wl_range=[500, 1200]):
         print("Now plotting...")
         f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
         mask_pos = f > 0
@@ -147,7 +147,7 @@ class fiber_propagation:
         )
         # ax2.set_aspect(15)
         ax2.set_title("Freq. domain")
-        ax2.set_xlim(500, 1200)
+        ax2.set_xlim(wl_range[0], wl_range[1])
         cb2 = plt.colorbar(pcm2, shrink=1, location="bottom")
 
         ax3.plot(t * 1e12, 1e-9 * abs(self.E[:, 0]) ** 2, label="before")
@@ -159,7 +159,7 @@ class fiber_propagation:
 
         ax4.plot(ll[0, :], S_log[0, :], label="before")
         ax4.plot(ll[0, :], S_log[-1, :], label="after")
-        ax4.set_xlim(500, 1400)
+        ax4.set_xlim(wl_range[0], wl_range[1])
         ax4.set_xlabel("Wavelength [nm]")
         ax4.set_ylim(-200, 10)
         ax4.legend()
@@ -194,7 +194,7 @@ class fiber_propagation:
             self.E_P[:, i] = self.E[:, -1]
             self.spectrum_P[:, i] = self.spectrum[:, -1]
 
-    def draw_P(self):
+    def draw_P(self, R_R, wl_range=[500, 1200]):
         print("Now plotting...")
         f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
         mask_pos = f > 0
@@ -210,7 +210,7 @@ class fiber_propagation:
         # ---- Small floor to avoid log(0)
         eps = np.finfo(float).eps
 
-        t, p = self.t, self.P
+        t, p = self.t, self.T0 * R_R * self.P
         tt, pp = np.meshgrid(t, p)
         ll, pp_lamb = np.meshgrid(lambda_axis, p)
         ff, pp_f = np.meshgrid(f, p)
@@ -238,7 +238,7 @@ class fiber_propagation:
 
         pcm1 = ax1.pcolormesh(
             tt * 1e12,
-            pp,
+            pp * 1e3,
             I_log,
             cmap="jet",
             vmin=-40,
@@ -247,16 +247,16 @@ class fiber_propagation:
         )
         # ax1.set_aspect(30)
         ax1.set_title("Time domain")
-        ax1.set_ylabel("Pump Power [W]")
+        ax1.set_ylabel("Pump Power [mW]")
         ax1.set_xlim(-20 * self.T0 * 1e12, t[-1] * 1e12)
         cb1 = plt.colorbar(pcm1, shrink=1, location="bottom")
 
         pcm2 = ax2.pcolormesh(
-            ll, pp_lamb, S_log, cmap="jet", vmin=-40, vmax=0, shading="gouraud"
+            ll, pp_lamb * 1e3, S_log, cmap="jet", vmin=-40, vmax=0, shading="gouraud"
         )
         # ax2.set_aspect(15)
         ax2.set_title("Freq. domain")
-        ax2.set_xlim(500, 1200)
+        ax2.set_xlim(wl_range[0], wl_range[1])
         cb2 = plt.colorbar(pcm2, shrink=1, location="bottom")
 
         ax3.plot(t * 1e12, 1e-9 * abs(self.E_P[:, 0]) ** 2, label="before")
@@ -268,7 +268,7 @@ class fiber_propagation:
 
         ax4.plot(ll[0, :], S_log[0, :], label="before")
         ax4.plot(ll[0, :], S_log[-1, :], label="after")
-        ax4.set_xlim(500, 1400)
+        ax4.set_xlim(wl_range[0], wl_range[1])
         ax4.set_xlabel("Wavelength [nm]")
         ax4.set_ylim(-200, 10)
         ax4.legend()
