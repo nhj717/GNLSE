@@ -14,11 +14,11 @@ if pulse_shape == "gaussian":
     T0 = T_FWHM / (2 * np.sqrt(np.log(2)))
 elif pulse_shape == "sech":
     T0 = T_FWHM / (2 * np.log(1 + np.sqrt(2)))  # pulse duration in seconds
-P0 = 1e5  # peak power in W
+P0 = 1e4  # peak power in W
 C = 0  # chirp
 
 # Grid information
-z_tot = 0.01  # Fiber length in m
+z_tot = 0.1  # Fiber length in m
 z_steps = 2**10
 dz = z_tot / z_steps
 z = np.arange(0, z_steps) * dz  # z grid for simulation
@@ -38,8 +38,8 @@ gamma = 2 * pi * n2 / lambda0   #set to zero for no non-linear effect
 fr = 0.18
 self_steepening = True
 
-# simulation_type = "RK4IP"
-simulation_type = "SSFM_Vishal"
+simulation_type = "RK4IP"
+# simulation_type = "SSFM_Vishal"
 ###        RUN SIMULATION    ###
 A = datetime.now()
 sim = fiber_propagation(omega0, dz, z, dt, t, f, omega, pulse_shape, P0, T0, C)

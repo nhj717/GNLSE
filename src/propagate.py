@@ -85,7 +85,7 @@ class fiber_propagation:
             update,
         )
 
-    def draw_z(self, wl_range=[500, 1200]):
+    def draw_z(self, wl_range=[500, 1200],v_range=[-40,0]):
         print("Now plotting...")
         f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
         mask_pos = f > 0
@@ -132,8 +132,8 @@ class fiber_propagation:
             zz * 1e2,
             I_log,
             cmap="jet",
-            vmin=-40,
-            vmax=0,
+            vmin=v_range[0],
+            vmax=v_range[1],
             shading="gouraud",
         )
         # ax1.set_aspect(30)
@@ -143,7 +143,7 @@ class fiber_propagation:
         cb1 = plt.colorbar(pcm1, shrink=1, location="bottom")
 
         pcm2 = ax2.pcolormesh(
-            ll, zz_lamb * 1e2, S_log, cmap="jet", vmin=-40, vmax=0, shading="gouraud"
+            ll, zz_lamb * 1e2, S_log, cmap="jet", vmin=v_range[0], vmax=v_range[1], shading="gouraud"
         )
         # ax2.set_aspect(15)
         ax2.set_title("Freq. domain")
@@ -194,7 +194,7 @@ class fiber_propagation:
             self.E_P[:, i] = self.E[:, -1]
             self.spectrum_P[:, i] = self.spectrum[:, -1]
 
-    def draw_P(self, R_R, wl_range=[500, 1200]):
+    def draw_P(self, R_R, wl_range=[500, 1200],v_range=[-40,0]):
         print("Now plotting...")
         f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
         mask_pos = f > 0
@@ -231,8 +231,8 @@ class fiber_propagation:
         S_log = 10 * np.log10((S + eps) / np.amax(S + eps,axis = 0)[None,:])
         S_log = S_log.T
 
-        fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(
-            2, 2, figsize=(10, 8), gridspec_kw={"height_ratios": [2, 1], "hspace": 0.1}
+        fig, ((ax1, ax2)) = plt.subplots(
+            1, 2, figsize=(10, 8)
         )
         fig.suptitle(f"Simulation with {self.sim_type} method")
 
@@ -241,36 +241,36 @@ class fiber_propagation:
             pp,
             I_log,
             cmap="jet",
-            vmin=-40,
-            vmax=0,
+            vmin=v_range[0],
+            vmax=v_range[1],
             shading="gouraud",
         )
         # ax1.set_aspect(30)
         ax1.set_title("Time domain")
         ax1.set_ylabel("Pump Power [W]")
         ax1.set_xlim(-20 * self.T0 * 1e12, t[-1] * 1e12)
-        cb1 = plt.colorbar(pcm1, shrink=1, location="bottom")
+        # cb1 = plt.colorbar(pcm1, shrink=1, location="bottom")
 
         pcm2 = ax2.pcolormesh(
-            ll, pp_lamb , S_log, cmap="jet", vmin=-40, vmax=0, shading="gouraud"
+            ll, pp_lamb , S_log, cmap="jet", vmin=v_range[0], vmax=v_range[1], shading="gouraud"
         )
         # ax2.set_aspect(15)
         ax2.set_title("Freq. domain")
         ax2.set_xlim(wl_range[0], wl_range[1])
-        cb2 = plt.colorbar(pcm2, shrink=1, location="bottom")
+        cb2 = plt.colorbar(pcm2, shrink=1)
 
-        ax3.plot(t * 1e12, 1e-9 * abs(self.E_P[:, 0]) ** 2, label="before")
-        ax3.plot(t * 1e12, 1e-9 * abs(self.E_P[:, -1]) ** 2, label="after")
-        ax3.set_xlim(-20 * self.T0 * 1e12, 20 * self.T0 * 1e12)
-        ax3.set_xlabel("Time [ps]")
-        ax3.set_ylabel("Intensity")
-        ax3.legend()
-
-        ax4.plot(ll[0, :], S_log[0, :], label="before")
-        ax4.plot(ll[0, :], S_log[-1, :], label="after")
-        ax4.set_xlim(wl_range[0], wl_range[1])
-        ax4.set_xlabel("Wavelength [nm]")
-        ax4.set_ylim(-200, 10)
-        ax4.legend()
+        # ax3.plot(t * 1e12, 1e-9 * abs(self.E_P[:, 0]) ** 2/np.max(abs(self.E_P[:, 0]) ** 2), label="before")
+        # ax3.plot(t * 1e12, 1e-9 * abs(self.E_P[:, -1]) ** 2/np.max(abs(self.E_P[:, 0]) ** 2), label="after")
+        # ax3.set_xlim(-20 * self.T0 * 1e12, 20 * self.T0 * 1e12)
+        # ax3.set_xlabel("Time [ps]")
+        # ax3.set_ylabel("Intensity")
+        # ax3.legend()
+        #
+        # ax4.plot(ll[0, :], S_log[0, :], label="before")
+        # ax4.plot(ll[0, :], S_log[-1, :], label="after")
+        # ax4.set_xlim(wl_range[0], wl_range[1])
+        # ax4.set_xlabel("Wavelength [nm]")
+        # ax4.set_ylim(-200, 10)
+        # ax4.legend()
 
         plt.show(block=True)

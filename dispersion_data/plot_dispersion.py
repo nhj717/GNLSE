@@ -1,6 +1,7 @@
 from functions import read_hdf5 as rdhd
-from numpy import flip
+import numpy as np
 import matplotlib.pyplot as plt
+from scipy.constants import pi,c
 from scipy.interpolate import UnivariateSpline
 import os
 
@@ -19,7 +20,7 @@ n = data_m[data_label_m.index("n")]
 wl_w = data_w[data_label_w.index("wl_um")]
 D_w = data_w[data_label_w.index("D")]
 neff = data_w[data_label_w.index("n_eff")]
-D_w_spl = UnivariateSpline(flip(wl_w), flip(D_w), k=5)
+D_w_spl = UnivariateSpline(np.flip(wl_w), np.flip(D_w), k=5)
 D_w_fit = D_w_spl(wl_m)
 
 D_waveguide = D_w_fit - D_m

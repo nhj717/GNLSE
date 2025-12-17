@@ -1,7 +1,7 @@
 from math import factorial
 import numpy as np
 import scipy.fft as fft
-from scipy.constants import c, pi
+from scipy.constants import c
 import os
 from scipy.interpolate import UnivariateSpline
 from functions import read_hdf5 as rdhd

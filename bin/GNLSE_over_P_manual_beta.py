@@ -30,7 +30,7 @@ t = np.arange(-t_steps / 2, t_steps / 2) * dt  # tau grid for simulations
 f = fftfreq(t_steps, dt)  # freq grid for simulation
 omega = 2 * np.pi * f
 
-Np = 2**7
+Np = 2**5
 # P_max = 1e3
 Pavg = 1.2  # Watts
 R_R = 80e6
@@ -60,4 +60,4 @@ sim = fiber_propagation(omega0, dz, z, dt, t, f, omega, pulse_shape, P0, T0, C)
 sim.propagate_P(simulation_type, alpha, beta, gamma, fr, self_steepening, P)
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
-sim.draw_P()
+sim.draw_P(R_R)

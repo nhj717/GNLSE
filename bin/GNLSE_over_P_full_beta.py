@@ -17,19 +17,19 @@ elif pulse_shape == "sech":
 C = 0  # chirp
 
 # Grid information
-z_tot = 0.095  # Fiber length in m
-z_steps = 2**11
+z_tot = 0.1  # Fiber length in m
+z_steps = 2**10
 dz = z_tot / z_steps
 z = np.arange(0, z_steps) * dz  # z grid for simulation
 
-T_span = 50 * T0
+T_span = 150 * T0
 t_steps = 2**12
 dt = T_span / t_steps
 t = np.arange(-t_steps / 2, t_steps / 2) * dt  # tau grid for simulations
 f = fftfreq(t_steps, dt)  # freq grid for simulation
 omega = 2 * np.pi * f
 
-Np = 2**7
+Np = 2**5
 Pavg = 1.2  # Watts
 R_R = 80e6
 P_max = Pavg / (T0 * R_R)
@@ -39,18 +39,18 @@ P = np.arange(1, Np + 1) * delP
 
 
 # Fiber information
-alpha = None  # loss of the fiber; type None to turn off alpha
+alpha = True  # loss of the fiber; type None to turn off alpha; type true to use the loss from FEM
 waveguide_name = "20240422_3B_ideal"  # name of the waveguide
 n2 = 2.6e-20  # nonlinear index in m^2/W
 gamma = 2 * pi * n2 / lambda0
 fr = 0.18
-self_steepening = True  # True or False to include self steepening
+self_steepening = False  # True or False to include self steepening
 
-simulation_type = "SSFM_Vishal"
+simulation_type = "RK4IP"
 ###        RUN SIMULATION    ###
 A = datetime.now()
 sim = fiber_propagation(omega0, dz, z, dt, t, f, omega, pulse_shape, P_max, T0, C)
 sim.propagate_P(simulation_type, alpha, waveguide_name, gamma, fr, self_steepening, P)
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
-sim.draw_P(R_R, wl_range=[735, 1095])
+sim.draw_P(R_R, wl_range=[735, 1095],v_range=[-20,0])
