@@ -33,19 +33,19 @@ def nonlinear_operator_divide_At(
     # # Instantaneous + delayed term
     S = (1 - fr) * I_t + fr * conv_R_t
     if self_steepening is False:
-        N_op = 1j* gamma*S
+        N_op = 1j * gamma * S
 
     else:
         SA_t = S * A_t
         N_op = (
-        1j
-        * gamma
-        * np.where(
-            abs(A_t) > 1e-15,
-            fft.fft((1 + omega / omega0) * fft.ifft(SA_t)) / (A_t + 1e-20),
-            0.0,
+            1j
+            * gamma
+            * np.where(
+                abs(A_t) > 1e-15,
+                fft.fft((1 + omega / omega0) * fft.ifft(SA_t)) / (A_t + 1e-20),
+                0.0,
+            )
         )
-    )
 
     return N_op
 
@@ -141,14 +141,16 @@ def linear_operator(alpha0, beta, omega0, omega):
         beta0_spl = UnivariateSpline(omega_data, beta0, k=5)
         beta1_spl = UnivariateSpline(omega_data, beta1, k=5)
         Aeff_spl = UnivariateSpline(omega_data, Aeff, k=5)
-        omega_true = omega+omega0
+        omega_true = omega + omega0
         if alpha0 is None:
             alpha_w = 0
         else:
             alpha_w = alpha_spl(omega_true)
-        beta_w = beta0_spl(omega_true) - beta0_spl(omega0) - beta1_spl(omega0) * omega_true
+        beta_w = (
+            beta0_spl(omega_true) - beta0_spl(omega0) - beta1_spl(omega0) * omega_true
+        )
         Aeff_w0 = Aeff_spl(omega0)
-        Aeff_w0 = 9.2e-12
+        # Aeff_w0 = 9.2e-12
 
     elif beta is None:
         Aeff_w0 = None
@@ -161,6 +163,3 @@ def linear_operator(alpha0, beta, omega0, omega):
     L = 1j * beta_w - alpha_w / 2
 
     return L, Aeff_w0
-
-
-
