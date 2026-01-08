@@ -85,7 +85,7 @@ class fiber_propagation:
             update,
         )
 
-    def draw_z(self, wl_range=[500, 1200],v_range=[-40,0]):
+    def draw_z(self, wl_range=[500, 1200], v_range=[-40, 0]):
         print("Now plotting...")
         f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
         mask_pos = f > 0
@@ -143,7 +143,13 @@ class fiber_propagation:
         cb1 = plt.colorbar(pcm1, shrink=1, location="bottom")
 
         pcm2 = ax2.pcolormesh(
-            ll, zz_lamb * 1e2, S_log, cmap="jet", vmin=v_range[0], vmax=v_range[1], shading="gouraud"
+            ll,
+            zz_lamb * 1e2,
+            S_log,
+            cmap="jet",
+            vmin=v_range[0],
+            vmax=v_range[1],
+            shading="gouraud",
         )
         # ax2.set_aspect(15)
         ax2.set_title("Freq. domain")
@@ -194,7 +200,7 @@ class fiber_propagation:
             self.E_P[:, i] = self.E[:, -1]
             self.spectrum_P[:, i] = self.spectrum[:, -1]
 
-    def draw_P(self, R_R, wl_range=[500, 1200],v_range=[-40,0]):
+    def draw_P(self, R_R, wl_range=[500, 1200], v_range=[-40, 0]):
         print("Now plotting...")
         f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
         mask_pos = f > 0
@@ -210,7 +216,7 @@ class fiber_propagation:
         # ---- Small floor to avoid log(0)
         eps = np.finfo(float).eps
 
-        t, p = self.t, self.T0 * R_R * self.P
+        t, p = self.t, np.sqrt(np.pi) * self.T0 * R_R * self.P
         tt, pp = np.meshgrid(t, p)
         ll, pp_lamb = np.meshgrid(lambda_axis, p)
         ff, pp_f = np.meshgrid(f, p)
@@ -223,23 +229,26 @@ class fiber_propagation:
         pp_lamb = pp_lamb[:, ::downsample_factor]
         I = abs(self.E_P) ** 2
         I = I[::downsample_factor, :]
-        I_log = 10 * np.log10((I + eps) / np.amax(I + eps,axis = 0)[None,:])
+        I = (I + eps) / np.amax(I + eps, axis=0)[None, :]
+        I_log = 10 * np.log10(I)
         I_log = I_log.T
+        I = I.T
         spectrum = fft.ifftshift(self.spectrum_P, axes=0)
         S = jacobian * abs(spectrum[mask_pos, :]) ** 2
         S = S[::downsample_factor, :]
-        S_log = 10 * np.log10((S + eps) / np.amax(S + eps,axis = 0)[None,:])
+        S = (S + eps) / np.amax(S + eps, axis=0)[None, :]
+        S_log = 10 * np.log10(S)
+        # S_log = 10 * np.log10((S + eps) / np.max(S))
         S_log = S_log.T
+        S = S.T
 
-        fig, ((ax1, ax2)) = plt.subplots(
-            1, 2, figsize=(10, 8)
-        )
+        fig, ((ax1, ax2)) = plt.subplots(1, 2, figsize=(10, 8))
         fig.suptitle(f"Simulation with {self.sim_type} method")
 
         pcm1 = ax1.pcolormesh(
             tt * 1e12,
             pp,
-            I_log,
+            I,
             cmap="jet",
             vmin=v_range[0],
             vmax=v_range[1],
@@ -252,7 +261,13 @@ class fiber_propagation:
         # cb1 = plt.colorbar(pcm1, shrink=1, location="bottom")
 
         pcm2 = ax2.pcolormesh(
-            ll, pp_lamb , S_log, cmap="jet", vmin=v_range[0], vmax=v_range[1], shading="gouraud"
+            ll,
+            pp_lamb,
+            S,
+            cmap="jet",
+            vmin=v_range[0],
+            vmax=v_range[1],
+            shading="gouraud",
         )
         # ax2.set_aspect(15)
         ax2.set_title("Freq. domain")
