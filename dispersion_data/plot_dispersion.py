@@ -7,7 +7,7 @@ import os
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
 materialname = "fused_silica"
-waveguidename = "20230330_4_ideal"
+waveguidename = "20240422_3B_ideal"
 data_label_m, data_m = rdhd(os.path.join(folder_path, "material.h5"), materialname)
 data_label_w, data_w = rdhd(os.path.join(folder_path, "waveguide.h5"), waveguidename)
 print(data_label_m)
@@ -45,7 +45,7 @@ ax.tick_params(axis="both", which="major", size=4, width=2, labelsize=10)
 # ax.set_yticks([-2,-1,0,1,2])
 for axis in ["top", "bottom", "left", "right"]:
     ax.spines[axis].set_linewidth(2)
-# ax.set_xlim(0.8,1.2)
-# ax.set_ylim(-500, 0)
+ax.set_xlim(0.5, 2)
+ax.set_ylim(-300, 0)
 ax.legend()
 plt.show(block=True)

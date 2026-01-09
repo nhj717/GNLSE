@@ -30,7 +30,7 @@ ax.tick_params(axis="both", which="major", size=4, width=2, labelsize=10)
 # ax.set_yticks([-2,-1,0,1,2])
 for axis in ["top", "bottom", "left", "right"]:
     ax.spines[axis].set_linewidth(2)
-# ax.set_xlim(0.8,1.2)
+ax.set_xlim(0.5, 2)
 # ax.set_ylim(-500, 0)
 ax.legend()
 plt.show(block=True)

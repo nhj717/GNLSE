@@ -219,8 +219,6 @@ def ODE_Dudley(
         method="RK45",
     )
 
-    progress_bar.close()
-
     # Convert to time domain
     spectrum = sol.y * np.exp(np.outer(L, Z))
     E = fft.fft(spectrum, axis=0)

@@ -44,8 +44,11 @@ class fiber_propagation:
             P0 = self.P0
 
         if pulse_shape == "gaussian":
-            self.E[:, 0] = np.sqrt(P0) * np.exp(-(1 + 1j * C) / 2 * (self.t / T0) ** 2)
-            self.spectrum[:, 0] = fft.ifft(self.E[:, 0])
+            self.E[:, 0] = np.sqrt(P0) * np.exp(-1 / 2 * (self.t / T0) ** 2)
+            self.spectrum[:, 0] = fft.ifft(self.E[:, 0]) * np.exp(
+                1j / 2 * C * self.omega**2
+            )
+            self.E[:, 0] = fft.fft(self.spectrum[:, 0])
 
         if pulse_shape == "sech":
             self.E[:, 0] = np.sqrt(P0) / np.cosh(self.t / T0)
@@ -288,4 +291,55 @@ class fiber_propagation:
         # ax4.set_ylim(-200, 10)
         # ax4.legend()
 
+        plt.show(block=True)
+
+    def draw_P_horizontal(self, R_R, wl_range=[500, 1200], v_range=[-40, 0]):
+        print("Now plotting...")
+        f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
+        mask_pos = f > 0
+        f = f[mask_pos]
+        lamb = c / f
+        # sort_idx = np.argsort(lamb)
+        # lambda_axis = lamb[sort_idx] * 1e9
+        lambda_axis = lamb * 1e9
+        # ---- factor to preserve energy conservation
+        jacobian = c / lamb**2
+        jacobian = np.expand_dims(jacobian, axis=-1)
+
+        # ---- Small floor to avoid log(0)
+        eps = np.finfo(float).eps
+        p = np.sqrt(np.pi) * self.T0 * R_R * self.P
+        pp_lamb, ll = np.meshgrid(p, lambda_axis)
+
+        downsample_factor = 4  # reduces number of points to plot
+        ll = ll[::downsample_factor, :]
+        pp_lamb = pp_lamb[::downsample_factor, :]
+        I = abs(self.E_P) ** 2
+        I = I[::downsample_factor, :]
+        I = (I + eps) / np.amax(I + eps, axis=0)[None, :]
+        I_log = 10 * np.log10(I)
+        spectrum = fft.ifftshift(self.spectrum_P, axes=0)
+        S = jacobian * abs(spectrum[mask_pos, :]) ** 2
+        S = S[::downsample_factor, :]
+        S = (S + eps) / np.amax(S + eps, axis=0)[None, :]
+        S_log = 10 * np.log10(S)
+        # S_log = 10 * np.log10((S + eps) / np.max(S))
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        fig.suptitle(f"Simulation with {self.sim_type} method")
+
+        pcm = ax.pcolormesh(
+            pp_lamb,
+            ll,
+            S,
+            cmap="jet",
+            vmin=v_range[0],
+            vmax=v_range[1],
+        )
+        # ax1.set_aspect(30)
+        ax.set_xlabel("Pump Power [W]")
+        ax.set_ylabel("Wavelength [nm]")
+        ax.set_ylim(wl_range[0], wl_range[1])
+        cb = plt.colorbar(pcm)
+        plt.tight_layout()
         plt.show(block=True)
