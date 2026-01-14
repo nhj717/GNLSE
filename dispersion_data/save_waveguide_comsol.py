@@ -8,7 +8,7 @@ import os
 # Path to your COMSOL text file
 project_path = os.getcwd()
 comsol_folder = "comsol_dispersion"
-waveguidename = "20240422_3B_SEM"
+waveguidename = "20240422_3B_ideal"
 filename = os.path.join(project_path, comsol_folder, waveguidename) + ".txt"
 
 # Read the file, skipping the first 4 lines (metadata)

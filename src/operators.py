@@ -149,13 +149,13 @@ def linear_operator(alpha0, beta, omega0, omega):
         beta_w = (
             beta0_spl(omega_true) - beta0_spl(omega0) - beta1_spl(omega0) * omega_true
         )
-        #
+
         # beta2 = data[data_label.index("beta2")]
         # beta2_spl = UnivariateSpline(omega_data, beta2, k=5)
         # beta_w = 0.5 * beta2_spl(omega_true) * omega_true**2
 
-        # Aeff_w0 = Aeff_spl(omega0)
-        Aeff_w0 = 9.23e-12
+        Aeff_w0 = Aeff_spl(omega0)
+        # Aeff_w0 = 3.3e-12
 
     elif beta is None:
         Aeff_w0 = None

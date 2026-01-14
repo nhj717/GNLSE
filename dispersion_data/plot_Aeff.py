@@ -12,6 +12,10 @@ print(data_label_w)
 wl_w = data_w[data_label_w.index("wl_um")]
 Aeff = data_w[data_label_w.index("A_eff")]
 
+target_wavelength_um = 1.064
+Aeff_spl = UnivariateSpline(flip(wl_w), flip(Aeff), k=5)
+Aeff_target = Aeff_spl(target_wavelength_um)
+print(f"Effective mode area at {target_wavelength_um}um is {Aeff_target*1e12}um^2")
 
 # plot
 mm = 1 / 25.4

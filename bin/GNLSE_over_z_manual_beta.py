@@ -44,8 +44,8 @@ gamma = 0.045  # nonlinear coeff from the fiber in W^-1/m
 fr = 0.18
 self_steepening = True
 
-# simulation_type = "RK4IP"
-simulation_type = "SSFM_Vishal"
+simulation_type = "RK4IP"
+# simulation_type = "SSFM_Vishal"
 ###        RUN SIMULATION    ###
 A = datetime.now()
 sim = fiber_propagation(omega0, dz, z, dt, t, f, omega, pulse_shape, P0, T0, C)

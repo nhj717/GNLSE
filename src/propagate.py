@@ -311,7 +311,7 @@ class fiber_propagation:
         p = np.sqrt(np.pi) * self.T0 * R_R * self.P
         pp_lamb, ll = np.meshgrid(p, lambda_axis)
 
-        downsample_factor = 4  # reduces number of points to plot
+        downsample_factor = 1  # reduces number of points to plot
         ll = ll[::downsample_factor, :]
         pp_lamb = pp_lamb[::downsample_factor, :]
         I = abs(self.E_P) ** 2
