@@ -17,19 +17,19 @@ elif pulse_shape == "sech":
 C = -0e-30  # chirp in s^2
 
 # Grid information
-z_tot = 0.1  # Fiber length in m
-z_steps = 2**10
+z_tot = 0.095  # Fiber length in m
+z_steps = 2**9
 dz = z_tot / z_steps
 z = np.arange(0, z_steps) * dz  # z grid for simulation
 
-T_span = 50 * T0
+T_span = 30 * T0
 t_steps = 2**12
 dt = T_span / t_steps
 t = np.arange(-t_steps / 2, t_steps / 2) * dt  # tau grid for simulations
 f = fftfreq(t_steps, dt)  # freq grid for simulation
 omega = 2 * np.pi * f
 
-Np = 2**10
+Np = 2**8
 Pavg = 0.25  # Watts
 R_R = 80e6
 P_max = Pavg / (T0 * R_R * np.sqrt(pi))
@@ -50,10 +50,11 @@ self_steepening = True  # True or False to include self steepening
 simulation_type = "RK4IP"
 ###        RUN SIMULATION    ###
 A = datetime.now()
-sim = fiber_propagation(
-    omega0, dz, z, dt, t, f, omega, pulse_shape, P_max, T0, C / T0**2
-)
+sim = fiber_propagation(omega0, dz, z, dt, t, f, omega, pulse_shape, P_max, T0, C)
 sim.propagate_P(simulation_type, alpha, waveguide_name, gamma, fr, self_steepening, P)
 B = datetime.now()
 print("time : for loop", (B - A).total_seconds())
+
+# sim.draw_P_line(R_R, wl_range=[900, 940], v_range=[-20, 0])
 sim.draw_P_horizontal(R_R, wl_range=[600, 1200], v_range=[0, 1])
+# sim.draw_P(R_R, wl_range=[600, 1200], v_range=[0, 1])

@@ -36,3 +36,24 @@ def mode_dispersion(w, wl_um, n):
         "D": D,
     }
     return arg_dict
+
+
+# loads h5 data of n_eff and converts it to beta1, beta2 and beta3 data
+def twisted_mode_dispersion(w, wl_um, n, alpha, j, smoothen):
+    wl = wl_um * 1e-6
+    beta0 = 2 * pi / wl
+    beta = n * beta0 + j * alpha
+
+    beta_spl = UnivariateSpline(w, beta, k=5, s=smoothen)
+    beta1 = beta_spl.derivative(n=1)
+    beta1_w = beta1(w)
+    beta2 = beta_spl.derivative(n=2)
+    beta2_w = beta2(w)
+    D = -2 * pi * c / wl**2 * beta2_w * 1e6
+    arg_dict = {
+        "beta0": beta_spl(w),
+        "beta1": beta1_w,
+        "beta2": beta2_w,
+        "D": D,
+    }
+    return arg_dict

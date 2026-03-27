@@ -1,32 +1,36 @@
 from functions import read_hdf5 as rdhd
-from numpy import flip
+import numpy as np
 import matplotlib.pyplot as plt
+from scipy.constants import pi, c
 from scipy.interpolate import UnivariateSpline
 import os
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
-waveguidename = "20230330_4_ideal"
-data_label_w, data_w = rdhd(os.path.join(folder_path, "waveguide.h5"), waveguidename)
-print(data_label_w)
+waveguidename = "5ring_twisted_0.5"
+data_label, data = rdhd(
+    os.path.join(folder_path, "twisted_waveguide.h5"), waveguidename
+)
+print(data_label)
 
-wl_w = data_w[data_label_w.index("wl_um")]
-Aeff = data_w[data_label_w.index("A_eff")]
 
-target_wavelength_um = 0.92
-Aeff_spl = UnivariateSpline(flip(wl_w), flip(Aeff), k=5)
-Aeff_target = Aeff_spl(target_wavelength_um)
-print(f"Effective mode area at {target_wavelength_um}um is {Aeff_target*1e12}um^2")
+w = data[data_label.index("omega")]
+print(np.size(w))
+wl_um = data[data_label.index("wl_um")]
+wl = wl_um * 1e-6
+neff = data[data_label.index("n_eff")]
+k = -np.imag(neff)
+alpha = 20 * w * k / c / np.log(10)
 
 # plot
 mm = 1 / 25.4
 size_parameter = (150, 120, 12)  # width, height, font
 layout = (0.1, 0.05, 1.0, 1.0)  # left,bottom,right,top
-label_list = ["wavelength [um]", "Effective Area [m^2]"]  # xlabel and ylabel
+label_list = ["wavelength [um]", "Loss [dB/m]"]  # xlabel and ylabel
 (width, height, fsize) = size_parameter
 
 fig, ax = plt.subplots(figsize=(width * mm, height * mm))
 fig.tight_layout(rect=layout)
-pcm = ax.plot(wl_w, Aeff, color="black", label="A_eff")
+pcm = ax.plot(wl_um, alpha, color="black")
 ax.set_xlabel(label_list[0], fontsize=fsize)
 ax.set_ylabel(label_list[1], fontsize=fsize)
 ax.tick_params(axis="both", which="major", size=4, width=2, labelsize=10)
@@ -35,6 +39,6 @@ ax.tick_params(axis="both", which="major", size=4, width=2, labelsize=10)
 for axis in ["top", "bottom", "left", "right"]:
     ax.spines[axis].set_linewidth(2)
 ax.set_xlim(0.5, 2)
-# ax.set_ylim(-500, 0)
-ax.legend()
+ax.set_ylim(0, 50)
+# ax.legend()
 plt.show(block=True)

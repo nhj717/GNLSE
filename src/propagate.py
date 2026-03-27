@@ -142,7 +142,8 @@ class fiber_propagation:
         # ax1.set_aspect(30)
         ax1.set_title("Time domain")
         ax1.set_ylabel("Distance [cm]")
-        ax1.set_xlim(-20 * self.T0 * 1e12, t[-1] * 1e12)
+        ax1.set_xlim(t[0] * 1e12, t[-1] * 1e12)
+        # ax1.set_xlim(-20 * self.T0 * 1e12, t[-1] * 1e12)
         cb1 = plt.colorbar(pcm1, shrink=1, location="bottom")
 
         pcm2 = ax2.pcolormesh(
@@ -172,6 +173,54 @@ class fiber_propagation:
         ax4.set_xlabel("Wavelength [nm]")
         ax4.set_ylim(-200, 10)
         ax4.legend()
+
+        plt.show(block=True)
+
+    def draw_z_line(self, wl_range=[500, 1200], v_range=[-40, 0]):
+        print("Now plotting...")
+        f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
+        mask_pos = f > 0
+        f = f[mask_pos]
+        lamb = c / f
+        # sort_idx = np.argsort(lamb)
+        # lambda_axis = lamb[sort_idx] * 1e9
+        lambda_axis = lamb * 1e9
+        # ---- factor to preserve energy conservation
+        jacobian = c / lamb**2
+        jacobian = np.expand_dims(jacobian, axis=-1)
+
+        # ---- Small floor to avoid log(0)
+        eps = np.finfo(float).eps
+
+        t, z = self.t, self.z
+        tt, zz = np.meshgrid(t, z)
+        ll, zz_lamb = np.meshgrid(lambda_axis, z)
+        ff, zz_f = np.meshgrid(f, z)
+
+        downsample_factor = 1  # reduces number of points to plot
+        tt = tt[::downsample_factor, ::downsample_factor]
+        zz = zz[::downsample_factor, ::downsample_factor]
+        # ff = ff[::downsample_factor, ::downsample_factor]
+        ll = ll[::downsample_factor, ::downsample_factor]
+        zz_lamb = zz_lamb[::downsample_factor, ::downsample_factor]
+        I = abs(self.E) ** 2
+        I = I[::downsample_factor, ::downsample_factor]
+        I_log = 10 * np.log10((I + eps) / np.max(I + eps))
+        I_log = I_log.T
+        spectrum = fft.ifftshift(self.spectrum, axes=0)
+        S = jacobian * abs(spectrum[mask_pos, :]) ** 2
+        S = S[::downsample_factor, ::downsample_factor]
+        S_log = 10 * np.log10((S + eps) / np.max(S + eps))
+        S_log = S_log.T
+        fig, ax = plt.subplots(figsize=(10, 8))
+        fig.suptitle(f"Simulation with {self.sim_type} method")
+
+        ax.plot(ll[0, :], S_log[0, :], label="before")
+        ax.plot(ll[0, :], S_log[-1, :], label="after")
+        ax.set_xlim(wl_range[0], wl_range[1])
+        ax.set_xlabel("Wavelength [nm]")
+        ax.set_ylim(-200, 10)
+        ax.legend()
 
         plt.show(block=True)
 
@@ -312,18 +361,14 @@ class fiber_propagation:
         pp_lamb, ll = np.meshgrid(p, lambda_axis)
 
         downsample_factor = 1  # reduces number of points to plot
-        ll = ll[::downsample_factor, :]
-        pp_lamb = pp_lamb[::downsample_factor, :]
         I = abs(self.E_P) ** 2
-        I = I[::downsample_factor, :]
         I = (I + eps) / np.amax(I + eps, axis=0)[None, :]
         I_log = 10 * np.log10(I)
         spectrum = fft.ifftshift(self.spectrum_P, axes=0)
         S = jacobian * abs(spectrum[mask_pos, :]) ** 2
-        S = S[::downsample_factor, :]
         S = (S + eps) / np.amax(S + eps, axis=0)[None, :]
         S_log = 10 * np.log10(S)
-        # S_log = 10 * np.log10((S + eps) / np.max(S))
+        S_log = S_log
 
         fig, ax = plt.subplots(figsize=(10, 5))
         fig.suptitle(f"Simulation with {self.sim_type} method")
@@ -341,5 +386,46 @@ class fiber_propagation:
         ax.set_ylabel("Wavelength [nm]")
         ax.set_ylim(wl_range[0], wl_range[1])
         cb = plt.colorbar(pcm)
+        plt.tight_layout()
+        plt.show(block=True)
+
+    def draw_P_line(self, R_R, wl_range=[500, 1200], v_range=[-40, 0]):
+        print("Now plotting...")
+        f = fft.ifftshift(self.f) + self.omega0 / 2 / np.pi
+        mask_pos = f > 0
+        f = f[mask_pos]
+        lamb = c / f
+        # sort_idx = np.argsort(lamb)
+        # lambda_axis = lamb[sort_idx] * 1e9
+        lambda_axis = lamb * 1e9
+        # ---- factor to preserve energy conservation
+        jacobian = c / lamb**2
+        jacobian = np.expand_dims(jacobian, axis=-1)
+
+        # ---- Small floor to avoid log(0)
+        eps = np.finfo(float).eps
+        p = np.sqrt(np.pi) * self.T0 * R_R * self.P
+        ll, pp_lamb = np.meshgrid(lambda_axis, p)
+
+        downsample_factor = 1  # reduces number of points to plot
+        I = abs(self.E_P) ** 2
+        I = (I + eps) / np.amax(I + eps, axis=0)[None, :]
+        I_log = 10 * np.log10(I)
+        spectrum = fft.ifftshift(self.spectrum_P, axes=0)
+        S = jacobian * abs(spectrum[mask_pos, :]) ** 2
+        S = (S) / np.max(S, axis=0)
+        S_log = 10 * np.log10(S)
+        S_log = S_log.T
+
+        fig, ax = plt.subplots(figsize=(10, 5))
+        fig.suptitle(f"Simulation with {self.sim_type} method")
+        ax.plot(
+            lambda_axis,
+            S_log[-1, :],
+        )
+        ax.set_ylabel("Pump Power [W]")
+        ax.set_xlabel("Wavelength [nm]")
+        ax.set_xlim(wl_range[0], wl_range[1])
+        ax.set_ylim(v_range[0], v_range[1])
         plt.tight_layout()
         plt.show(block=True)
