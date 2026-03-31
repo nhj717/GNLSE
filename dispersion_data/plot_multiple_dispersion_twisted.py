@@ -6,28 +6,27 @@ from scipy.interpolate import UnivariateSpline
 import os
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
-
-# p_tag = "cap_t"
-# p1_value, p2_value, p3_value, p4_value, p5_value = (
-#     "600E-9_rcp",
-#     "620E-9_rcp",
-#     "640E-9_rcp",
-#     "660E-9_rcp",
-#     "680E-9_rcp",
-# )
-# waveguidenames = [
-#     f"{p_tag}_{p1_value}",
-#     f"{p_tag}_{p2_value}",
-#     f"{p_tag}_{p3_value}",
-#     f"{p_tag}_{p4_value}",
-#     f"{p_tag}_{p5_value}",
-# ]
-
+p_tag = "cap_t"
+p1_value, p2_value, p3_value, p4_value, p5_value = (
+    "600E-9_rcp",
+    "620E-9_rcp",
+    "640E-9_rcp",
+    "660E-9_rcp",
+    "680E-9_rcp",
+)
 waveguidenames = [
-    "20230907_rcp",
-    "20230907_SEM_rcp",
-    "20230907_SEM_straight_rcp",
+    f"{p_tag}_{p1_value}",
+    f"{p_tag}_{p2_value}",
+    f"{p_tag}_{p3_value}",
+    f"{p_tag}_{p4_value}",
+    f"{p_tag}_{p5_value}",
 ]
+
+# waveguidenames = [
+#     "20230907_rcp",
+#     "20230907_SEM_rcp",
+#     "20230907_SEM_straight_rcp",
+# ]
 
 wl_um, D = [], []
 for name in waveguidenames:

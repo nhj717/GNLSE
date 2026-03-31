@@ -6,20 +6,18 @@ from scipy.interpolate import UnivariateSpline
 import os
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
-p_tag = "cap_t"
-p1_value, p2_value, p3_value, p4_value, p5_value = (
-    "600E-9_lcp",
-    "620E-9_lcp",
-    "640E-9_lcp",
-    "660E-9_lcp",
-    "680E-9_lcp",
+p_tag = "d_ratio"
+p1_value, p2_value, p3_value, p4_value = (
+    "0.4_rcp",
+    "0.5_rcp",
+    "0.6_rcp",
+    "0.7_rcp",
 )
 waveguidenames = [
     f"{p_tag}_{p1_value}",
     f"{p_tag}_{p2_value}",
     f"{p_tag}_{p3_value}",
     f"{p_tag}_{p4_value}",
-    f"{p_tag}_{p5_value}",
 ]
 # waveguidenames = [
 #     # "20230907_lcp",
@@ -53,7 +51,6 @@ pcm = ax.plot(wl_um[0], loss[0], label=f"{waveguidenames[0]}")
 pcm = ax.plot(wl_um[1], loss[1], label=f"{waveguidenames[1]}")
 pcm = ax.plot(wl_um[2], loss[2], label=f"{waveguidenames[2]}")
 pcm = ax.plot(wl_um[3], loss[3], label=f"{waveguidenames[3]}")
-pcm = ax.plot(wl_um[4], loss[4], label=f"{waveguidenames[4]}")
 ax.grid()
 ax.set_xlabel(label_list[0], fontsize=fsize)
 ax.set_ylabel(label_list[1], fontsize=fsize)
@@ -63,6 +60,6 @@ ax.tick_params(axis="both", which="major", size=4, width=2, labelsize=10)
 for axis in ["top", "bottom", "left", "right"]:
     ax.spines[axis].set_linewidth(2)
 ax.set_xlim(0.5, 2.0)
-ax.set_ylim(-1, 150)
+# ax.set_ylim(-1, 150)
 ax.legend()
 plt.show(block=True)

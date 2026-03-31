@@ -7,8 +7,8 @@ import os
 
 # Path to your COMSOL text file
 project_path = os.getcwd()
-comsol_folder = "comsol_dispersion/20230907"
-waveguidename = "20230907_SEM_straight_lcp"
+comsol_folder = "comsol_dispersion/5ring_ratio"
+waveguidename = "d_ratio_0.4_lcp"
 filename = os.path.join(project_path, comsol_folder, waveguidename) + ".txt"
 
 # Read the file, no lines skipped
@@ -21,9 +21,9 @@ columns_as_lists = {col: df[col].tolist() for col in df.columns}
 
 print(columns_as_lists.keys())  # show the column names
 
-twist_period = 0.02  # in meters
-alpha = 2 * pi / twist_period * 0
-j = -1  # rcp is -1 in this case
+twist_period = 0.01  # in meters
+alpha = 2 * pi / twist_period
+j = 1  # rcp is -1 in this case
 
 overlap = np.array(df["overlap"])
 freq = np.array(df["freq"])

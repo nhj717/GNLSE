@@ -15,19 +15,24 @@ def save_dict_to_hdf5(output_filename, group_name, dic):
         f.close()
 
 
-def read_hdf5(filename, group_name, read=True):
+def read_hdf5(filename, group_name=None, read=True):
     df = h5py.File(filename, "r")
     if read is True:
         print(df.keys())
-    try:
-        data_label = list(df[group_name].keys())
+    if group_name == None:
+        data_label = list(df.keys())
         data = []
         for name in data_label:
-            data.append(np.array(df[group_name][name]))
+            data.append(np.array(df[name]))
+    else:
+        try:
+            data_label = list(df[group_name].keys())
+            data = []
+            for name in data_label:
+                data.append(np.array(df[group_name][name]))
 
-    except:
-        data_label = "data"
-        data = np.array(df[group_name])
-
+        except:
+            data_label = "data"
+            data = np.array(df[group_name])
     df.close()
     return data_label, data
