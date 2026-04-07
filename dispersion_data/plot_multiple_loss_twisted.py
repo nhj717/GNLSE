@@ -6,27 +6,27 @@ from scipy.interpolate import UnivariateSpline
 import os
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
-p_tag = "d_ratio"
-p1_value, p2_value, p3_value, p4_value = (
-    "0.4_rcp",
-    "0.5_rcp",
-    "0.6_rcp",
-    "0.7_rcp",
-)
-waveguidenames = [
-    f"{p_tag}_{p1_value}",
-    f"{p_tag}_{p2_value}",
-    f"{p_tag}_{p3_value}",
-    f"{p_tag}_{p4_value}",
-]
+# p_tag = "d_ratio"
+# p1_value, p2_value, p3_value, p4_value = (
+#     "20230907_rcp",
+#     "0.5_rcp",
+#     "0.6_rcp",
+#     "0.7_rcp",
+# )
 # waveguidenames = [
-#     # "20230907_lcp",
-#     # "20230907_rcp",
-#     "20230907_SEM_lcp",
-#     "20230907_SEM_rcp",
-#     "20230907_SEM_straight_lcp",
-#     "20230907_SEM_straight_rcp",
+#     f"{p_tag}_{p1_value}",
+#     f"{p_tag}_{p2_value}",
+#     f"{p_tag}_{p3_value}",
+#     f"{p_tag}_{p4_value}",
 # ]
+waveguidenames = [
+    "20230907_lcp",
+    "20230907_rcp",
+    "20230907_SEM_lcp",
+    "20230907_SEM_rcp",
+    "20230907_SEM_straight_lcp",
+    "20230907_SEM_straight_rcp",
+]
 
 wl_um, loss = [], []
 for name in waveguidenames:

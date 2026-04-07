@@ -36,3 +36,11 @@ def read_hdf5(filename, group_name=None, read=True):
             data = np.array(df[group_name])
     df.close()
     return data_label, data
+
+
+def mode_overlap(E_i, E_ref, w):
+    num = np.sum(w * E_i * np.conjugate(E_ref))
+    denA = np.sum(w * E_i * np.conjugate(E_i))
+    denB = np.sum(w * E_ref * np.conjugate(E_ref))
+    overlap = abs(num) ** 2 / (abs(denA * denB) + 1e-300)
+    return overlap

@@ -4,21 +4,21 @@ import os
 import numpy as np
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
-file = "cmap_test"
+file = "5ring_ratio_cmap_half_period"
 p_tag = "d_ratio"
-p_value = "1.4"
+p_value = "0.5"
 waveguidename = f"{p_tag}_{p_value}.h5"
 
 wl_um, D = [], []
 data_label, data = rdhd(os.path.join(folder_path, file, waveguidename))
 
 x = data[data_label.index("freq")][0]
-y = data[data_label.index("mode_num")][2]
+y = data[data_label.index("mode_num")][1]
 
 # plot
 mm = 1 / 25.4
 size_parameter = (150, 120, 12)  # width, height, font
-label_list = ["Freq", "neff"]  # xlabel and ylabel
+label_list = ["Freq", "neff_re"]  # xlabel and ylabel
 (width, height, fsize) = size_parameter
 fig, ax = plt.subplots(figsize=(width * mm, height * mm))
 pcm = ax.plot(x, y, c="black")

@@ -6,7 +6,7 @@ from scipy.interpolate import UnivariateSpline
 import os
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
-waveguidename = "5ring_twisted_0.5"
+waveguidename = "20230907"
 data_label, data = rdhd(
     os.path.join(folder_path, "twisted_waveguide.h5"), waveguidename
 )

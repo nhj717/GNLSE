@@ -8,7 +8,7 @@ from functions import read_hdf5 as rdhd
 
 
 def nonlinear_operator_divide_At(
-    A_t, gamma, omega0, omega, fr, R_t, dt, self_steepening
+    A_t, gamma, omega0, omega, fr, R_w, M, start, N, dt, self_steepening
 ):
     """
     Full nonlinear term with self-steepening and Raman.
@@ -17,17 +17,13 @@ def nonlinear_operator_divide_At(
     # Instantaneous intensity
     I_t = np.abs(A_t) ** 2
 
-    # Raman convolution (zero-padding to avoid temporal aliasing)
-    N = len(omega)
-    M = fft.next_fast_len(2 * N)
-    R_w = M * fft.ifft(R_t, n=M)
+    # Raman convolution using precomputed R_w and padding parameters
     I_w = fft.ifft(I_t, n=M)
 
     # Convolution in frequency domain and back to time; scale by dt
     conv_R_t = fft.fft(R_w * I_w) * dt
 
     # Shift back to centered time origin and crop to original length
-    start = (M - N) // 2
     conv_R_t = conv_R_t[start : start + N]
 
     # # Instantaneous + delayed term
@@ -51,7 +47,7 @@ def nonlinear_operator_divide_At(
 
 
 def nonlinear_operator_seperated(
-    A_t, gamma, omega0, omega, fr, R_t, dt, self_steepening
+    A_t, gamma, omega0, omega, fr, R_w, M, start, N, dt, self_steepening
 ):
     """
     Full nonlinear term with self-steepening and Raman.
@@ -60,17 +56,13 @@ def nonlinear_operator_seperated(
     # Instantaneous intensity
     I_t = np.abs(A_t) ** 2
 
-    # Raman convolution (zero-padding to avoid temporal aliasing)
-    N = len(omega)
-    M = fft.next_fast_len(2 * N)
-    R_w = M * fft.ifft(R_t, n=M)
+    # Raman convolution using precomputed R_w and padding parameters
     I_w = fft.ifft(I_t, n=M)
 
     # Convolution in frequency domain and back to time; scale by dt
     conv_R_t = fft.fft(R_w * I_w) * dt
 
     # Shift back to centered time origin and crop to original length
-    start = (M - N) // 2
     conv_R_t = conv_R_t[start : start + N]
 
     # # Instantaneous + delayed term
@@ -83,7 +75,9 @@ def nonlinear_operator_seperated(
     return 1j * gamma * S, 1j * gamma * SA_t
 
 
-def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt, self_steepening):
+def nonlinear_operator(
+    A_t, gamma, omega0, omega, fr, R_w, M, start, N, dt, self_steepening
+):
     """
     Full nonlinear term with self-steepening and Raman.
     FFT convolution is used for Raman term.
@@ -91,17 +85,13 @@ def nonlinear_operator(A_t, gamma, omega0, omega, fr, R_t, dt, self_steepening):
     # Instantaneous intensity
     I_t = np.abs(A_t) ** 2
 
-    # Raman convolution (zero-padding to avoid temporal aliasing)
-    N = len(omega)
-    M = fft.next_fast_len(2 * N)
-    R_w = M * fft.ifft(R_t, n=M)
+    # Raman convolution using precomputed R_w and padding parameters
     I_w = fft.ifft(I_t, n=M)
 
     # Convolution in frequency domain and back to time; scale by dt
     conv_R_t = fft.fft(R_w * I_w) * dt
 
     # Shift back to centered time origin and crop to original length
-    start = (M - N) // 2
     conv_R_t = conv_R_t[start : start + N]
 
     # # Instantaneous + delayed term

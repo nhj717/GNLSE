@@ -29,6 +29,14 @@ def RK4IP(
         gamma = gamma / Aeff
     D_half = np.exp(L * dz / 2)
     Nz = len(E[0, :])
+
+    # --- PRECOMPUTE RAMAN VARIABLES ONCE ---
+    N = len(omega)
+    M = fft.next_fast_len(2 * N)
+    R_w = M * fft.ifft(R_t, n=M)
+    start = (M - N) // 2
+    # ---------------------------------------
+
     if update is True:
         progress_bar = tqdm.tqdm(total=Nz * dz * 1000, unit="mm")
     for i in range(Nz - 1):
@@ -38,23 +46,64 @@ def RK4IP(
 
         # Half-step Dispersion
         A_I = fft.fft(D_half * spectrum[:, i])
+
         # 4 RK stages
         k1 = fft.fft(
             D_half
             * fft.ifft(
-                dz * N_op(E[:, i], gamma, omega0, omega, fr, R_t, dt, self_steepening)
+                dz
+                * N_op(
+                    E[:, i],
+                    gamma,
+                    omega0,
+                    omega,
+                    fr,
+                    R_w,
+                    M,
+                    start,
+                    N,
+                    dt,
+                    self_steepening,
+                )
             )
         )
 
-        k2 = dz * N_op(A_I + k1 / 2, gamma, omega0, omega, fr, R_t, dt, self_steepening)
-        k3 = dz * N_op(A_I + k2 / 2, gamma, omega0, omega, fr, R_t, dt, self_steepening)
+        k2 = dz * N_op(
+            A_I + k1 / 2,
+            gamma,
+            omega0,
+            omega,
+            fr,
+            R_w,
+            M,
+            start,
+            N,
+            dt,
+            self_steepening,
+        )
+        k3 = dz * N_op(
+            A_I + k2 / 2,
+            gamma,
+            omega0,
+            omega,
+            fr,
+            R_w,
+            M,
+            start,
+            N,
+            dt,
+            self_steepening,
+        )
         k4 = dz * N_op(
             fft.fft(D_half * fft.ifft(A_I + k3)),
             gamma,
             omega0,
             omega,
             fr,
-            R_t,
+            R_w,
+            M,
+            start,
+            N,
             dt,
             self_steepening,
         )
@@ -66,6 +115,83 @@ def RK4IP(
         spectrum[:, i + 1] = fft.ifft(E[:, i + 1])
 
     return E, spectrum
+
+
+def RK4IP_vectorized(
+    alpha,
+    beta,
+    gamma,
+    fr,
+    self_steepening,
+    omega0,
+    omega,
+    R_t,
+    dz,
+    dt,
+    E_2D,
+    spectrum_2D,
+    Nz,
+    update,
+):
+    L, Aeff = L_op(alpha, beta, omega0, omega)
+    if Aeff is not None:
+        gamma = gamma / Aeff
+
+    # Broadcast linear operator to match 2D shape (Nt, 1)
+    L = L[:, None]
+    D_half = np.exp(L * dz / 2)
+
+    # Precompute Raman Variables
+    N_omega = len(omega)
+    M = fft.next_fast_len(2 * N_omega)
+    R_w = M * fft.ifft(R_t, n=M)
+    R_w = R_w[:, None]  # Broadcast for Raman
+    start = (M - N_omega) // 2
+    omega_broad = omega[:, None]
+
+    # Internal localized nonlinear operator strictly for 2D arrays
+    def N_op_vec(A_t):
+        I_t = np.abs(A_t) ** 2
+        I_w = fft.ifft(I_t, n=M, axis=0)
+        conv_R_t = fft.fft(R_w * I_w, axis=0) * dt
+        conv_R_t = conv_R_t[start : start + N_omega]
+        S = (1 - fr) * I_t + fr * conv_R_t
+        SA_t = S * A_t
+        if self_steepening is False:
+            return 1j * gamma * SA_t
+        else:
+            return (
+                1j
+                * gamma
+                * fft.fft((1 + omega_broad / omega0) * fft.ifft(SA_t, axis=0), axis=0)
+            )
+
+    if update is True:
+        progress_bar = tqdm.tqdm(total=Nz * dz * 1000, unit="mm")
+
+    for i in range(Nz - 1):
+        if update is True:
+            progress_bar.n = round(i * dz * 1000, 3)
+            progress_bar.update(0)
+
+        # Half-step Dispersion
+        A_I = fft.fft(D_half * spectrum_2D, axis=0)
+
+        # 4 RK stages with axis=0 strictly enforced
+        k1 = fft.fft(D_half * fft.ifft(dz * N_op_vec(E_2D), axis=0), axis=0)
+        k2 = dz * N_op_vec(A_I + k1 / 2)
+        k3 = dz * N_op_vec(A_I + k2 / 2)
+        k4 = dz * N_op_vec(fft.fft(D_half * fft.ifft(A_I + k3, axis=0), axis=0))
+
+        # Save result for the next spatial step
+        E_2D = (
+            fft.fft(D_half * fft.ifft(A_I + k1 / 6 + k2 / 3 + k3 / 3, axis=0), axis=0)
+            + k4 / 6
+        )
+        spectrum_2D = fft.ifft(E_2D, axis=0)
+
+    # By the end of the loop, E_2D holds the final pulse for all P values
+    return E_2D, spectrum_2D
 
 
 def SSFM_Agrawal(
@@ -89,6 +215,13 @@ def SSFM_Agrawal(
     D_half = np.exp(L * dz / 2)
     Nz = len(E[0, :])
 
+    # --- PRECOMPUTE RAMAN VARIABLES ONCE ---
+    N = len(omega)
+    M = fft.next_fast_len(2 * N)
+    R_w = M * fft.ifft(R_t, n=M)
+    start = (M - N) // 2
+    # ---------------------------------------
+
     if update is True:
         progress_bar = tqdm.tqdm(total=Nz * dz * 1000, unit="mm")
     for i in range(Nz - 1):
@@ -99,8 +232,10 @@ def SSFM_Agrawal(
         A_t_i = fft.fft(D_half * spectrum[:, i])
 
         # Full-step Nonlienar
-        N = N_op_divide(A_t_i, gamma, omega0, omega, fr, R_t, dt, self_steepening)
-        A_t_i *= np.exp(N * dz)
+        N_op_val = N_op_divide(
+            A_t_i, gamma, omega0, omega, fr, R_w, M, start, N, dt, self_steepening
+        )
+        A_t_i *= np.exp(N_op_val * dz)
 
         # Last half-step Dispersion
         spectrum[:, i + 1] = D_half * fft.ifft(A_t_i)
@@ -130,6 +265,13 @@ def SSFM_Vishal(
     D_half = np.exp(L * dz / 2)
     Nz = len(E[0, :])
 
+    # --- PRECOMPUTE RAMAN VARIABLES ONCE ---
+    N = len(omega)
+    M = fft.next_fast_len(2 * N)
+    R_w = M * fft.ifft(R_t, n=M)
+    start = (M - N) // 2
+    # ---------------------------------------
+
     if update is True:
         progress_bar = tqdm.tqdm(total=Nz * dz * 1000, unit="mm")
     for i in range(Nz - 1):
@@ -141,7 +283,7 @@ def SSFM_Vishal(
 
         # Full-step Nonlienar
         N_mult, N_add = N_op_seperated(
-            A_t_i, gamma, omega0, omega, fr, R_t, dt, self_steepening
+            A_t_i, gamma, omega0, omega, fr, R_w, M, start, N, dt, self_steepening
         )
         A_t_i *= np.exp(N_mult * dz)
         A_t_i += N_add * dz

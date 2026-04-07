@@ -6,14 +6,14 @@ import numpy as np
 import os
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
-file = "cmap_test"
+file = "5ring_ratio_cmap_twice_period"
 p_tag = "d_ratio"
-p_value = "1.2"
+p_value = "0.5"
 waveguidename = f"{p_tag}_{p_value}.h5"
 
 data_label, data = rdhd(os.path.join(folder_path, file, waveguidename))
 
-mode_number = 2
+mode_number = 0
 freq_number = 0
 x = data[data_label.index("x")][0]
 y = data[data_label.index("y")][0]
@@ -24,13 +24,19 @@ for i in range(3):
     I += E_re[i] ** 2 + E_im[i] ** 2
 I = I / np.max(I)
 
+I_rcp = np.abs(E_re[0] + 1j * E_im[0] - 1j * (E_re[1] + 1j * E_im[1])) ** 2
+I_rcp /= np.max(I_rcp)
+
+I_lcp = np.abs(E_re[0] + 1j * E_im[0] + 1j * (E_re[1] + 1j * E_im[1])) ** 2
+I_lcp /= np.max(I_lcp)
+
 ###Plot setting should be the same from ModeTrack.m in cluster
-D = 10  # in microns
+D = 40  # in microns
 Nr = 80
 Ntheta = 120
 
 # reshape to (Ntheta, Nr) consistent with MATLAB polarGrid
-V = I.reshape(Ntheta, Nr)
+V = I_rcp.reshape(Ntheta, Nr)
 X = x.reshape(Ntheta, Nr)
 Y = y.reshape(Ntheta, Nr)
 
